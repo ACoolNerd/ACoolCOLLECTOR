@@ -1,0 +1,12 @@
+{
+  "name": "acoolcollector-landing",
+  "version": "1.0.0",
+  "description": "Headless QA testing for ACoolCOLLECTOR",
+  "main": "take_screenshot.js",
+  "scripts": {
+    "test": "node take_screenshot.js"
+  },
+  "dependencies": {
+    "puppeteer": "^22.0.0"
+  }
+}

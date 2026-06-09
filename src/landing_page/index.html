@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACoolCOLLECTOR | CCC Genesis Drop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0A0A0A; color: #FFFFFF; font-family: 'Inter', sans-serif; }
+        .glow { box-shadow: 0 0 20px rgba(0, 255, 204, 0.5); }
+        .red-glow { box-shadow: 0 0 20px rgba(255, 59, 48, 0.5); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="border-b border-gray-800 p-6 flex justify-between items-center bg-black">
+        <h1 class="text-2xl font-bold tracking-widest text-red-500">ACOOL<span class="text-white">COLLECTOR</span></h1>
+        <div class="flex gap-4">
+            <span class="px-4 py-2 text-xs font-bold bg-gray-900 border border-gray-700 rounded-full text-gray-300">RLR VAULT SECURED</span>
+            <span class="px-4 py-2 text-xs font-bold bg-green-900 border border-green-500 rounded-full text-green-400">FISERV ESCROW ACTIVE</span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow p-10 max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        
+        <!-- Left: Video/Event Info -->
+        <div class="space-y-6">
+            <div class="aspect-video bg-gray-900 border border-gray-800 rounded-2xl flex flex-col justify-center items-center relative overflow-hidden red-glow">
+                <div class="absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded">🔴 LIVE</div>
+                <div class="absolute top-4 right-4 bg-black/50 backdrop-blur text-white text-xs font-bold px-3 py-1 rounded">142K Viewers</div>
+                <svg class="w-20 h-20 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <p class="mt-4 text-gray-500 font-mono text-sm">100 Thieves Compound x Insomniac</p>
+            </div>
+
+            <div class="flex gap-4">
+                <span class="px-4 py-2 bg-gray-900 rounded text-sm text-yellow-500 font-bold border border-yellow-500/30">Lakers</span>
+                <span class="px-4 py-2 bg-gray-900 rounded text-sm text-red-500 font-bold border border-red-500/30">100 Thieves</span>
+                <span class="px-4 py-2 bg-gray-900 rounded text-sm text-blue-500 font-bold border border-blue-500/30">NiP</span>
+                <span class="px-4 py-2 bg-gray-900 rounded text-sm text-purple-500 font-bold border border-purple-500/30">Swae Lee</span>
+            </div>
+            
+            <h2 class="text-4xl font-bold">The CCC Genesis Drop</h2>
+            <p class="text-gray-400">Hosted by Chauncey Gardner FREEDEM. A $100,000 Pinnacle Tier Vintage Box Break. Join the CoOp Syndicate and claim your fractional legacy.</p>
+        </div>
+
+        <!-- Right: Interactive Escrow Panel -->
+        <div class="bg-gray-900 border border-gray-800 p-8 rounded-3xl space-y-8">
+            <div>
+                <h3 class="text-xl font-bold text-gray-300">CoOp Syndicate: The Vibe Vault</h3>
+                <p class="text-sm text-gray-500 mt-1">Griggs Governance | Mutual Fulfillment Profile Validated</p>
+            </div>
+
+            <!-- Progress Bar -->
+            <div>
+                <div class="flex justify-between text-sm mb-2">
+                    <span class="text-cyan-400 font-bold">Funding Progress</span>
+                    <span class="text-white font-mono" id="funding-text">$99,500 / $100,000</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-4 overflow-hidden">
+                    <div id="progress-bar" class="bg-gradient-to-r from-cyan-500 to-blue-500 h-4 rounded-full" style="width: 99.5%"></div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2 text-right">995 / 1000 Members Confirmed</p>
+            </div>
+
+            <!-- AR Banner -->
+            <div class="bg-blue-900/20 border border-blue-500/30 p-4 rounded-xl flex items-start gap-4">
+                <div class="bg-blue-500/20 p-2 rounded-lg">
+                    <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-blue-400">Oakley x Meta AR Ready</h4>
+                    <p class="text-xs text-blue-200/70 mt-1">When a Pinnacle Card is pulled, your Digital Twin will instantly generate for mixed-reality viewing.</p>
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <button id="fund-btn" class="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-gray-200 transition-all glow">
+                Contribute $100 (Finalize Escrow)
+            </button>
+            <p id="success-msg" class="text-center text-green-400 font-bold hidden mt-4">ESCROW LOCKED. TRIGGERING RLR VAULT PROTOCOL.</p>
+
+        </div>
+    </main>
+
+    <footer class="border-t border-gray-800 p-6 text-center text-gray-600 text-sm">
+        Powered by HOWARD Help | ACoolCOLLECTOR © 2026 | "For-Profit for Good"
+    </footer>
+
+    <script>
+        const btn = document.getElementById('fund-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const fundingText = document.getElementById('funding-text');
+        const successMsg = document.getElementById('success-msg');
+
+        btn.addEventListener('click', () => {
+            progressBar.style.width = '100%';
+            fundingText.innerText = '$100,000 / $100,000';
+            btn.classList.add('hidden');
+            successMsg.classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>
