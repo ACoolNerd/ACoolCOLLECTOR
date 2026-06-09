@@ -1,0 +1,6 @@
+region,sport,demand_index,top_vendor_id
+California,Basketball,0.95,VND_LA_001
+Texas,Football,0.92,VND_TX_042
+New York,Baseball,0.88,VND_NY_012
+Florida,UFC,0.85,VND_FL_009
+Illinois,Basketball,0.82,VND_CHI_005
