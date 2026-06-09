@@ -1,16 +1,23 @@
 import 'package:flutter/material.dart';
 
+enum UserRole { collector, vendor, distributor }
+
 class OmnianalysisDashboard extends StatelessWidget {
   final Map<String, dynamic> marketData;
+  final UserRole userRole;
 
-  const OmnianalysisDashboard({Key? key, required this.marketData}) : super(key: key);
+  const OmnianalysisDashboard({
+    Key? key, 
+    required this.marketData, 
+    this.userRole = UserRole.collector
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212), // Deep Omnianalysis Dark Theme
+      backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
-        title: const Text('ACoolCOLLECTOR: Beth Beta', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+        title: Text(_getAppBarTitle(), style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2)),
         backgroundColor: Colors.black,
         elevation: 0,
         actions: [
@@ -22,30 +29,70 @@ class OmnianalysisDashboard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Market Arbitrage Detected",
-              style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            const ArbitrageTicker(),
-            const SizedBox(height: 32),
-            const Text(
-              "Pinnacle Tier vs Gem Tier",
-              style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            GradingMatrixCard(
-              cardName: "Michael Jordan 1986 Fleer #57",
-              psa10Price: "\$250,000",
-              bgsBlackLabelPrice: "\$1,000,000+",
-              tag1000Price: "Calculating...",
-            ),
+            if (userRole == UserRole.collector) ..._buildCollectorView(),
+            if (userRole == UserRole.vendor) ..._buildVendorView(),
+            if (userRole == UserRole.distributor) ..._buildDistributorView(),
           ],
         ),
       ),
     );
   }
+
+  String _getAppBarTitle() {
+    switch (userRole) {
+      case UserRole.collector: return 'CoOp: Collector View';
+      case UserRole.vendor: return 'Vendor Matrix';
+      case UserRole.distributor: return 'Distributor Analytics';
+    }
+  }
+
+  List<Widget> _buildCollectorView() {
+    return [
+      const Text("Market Arbitrage Detected", style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 16),
+      const ArbitrageTicker(),
+      const SizedBox(height: 32),
+      const Text("Pinnacle Tier vs Gem Tier", style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 16),
+      const GradingMatrixCard(
+        cardName: "Michael Jordan 1986 Fleer #57",
+        psa10Price: "\$250,000",
+        bgsBlackLabelPrice: "\$1,000,000+",
+        tag1000Price: "Calculating...",
+      ),
+    ];
+  }
+
+  List<Widget> _buildVendorView() {
+    return [
+      const Text("Live Inventory Turnover", style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 16),
+      const InventoryListWidget(), // New Vendor Widget
+      const SizedBox(height: 32),
+      const Text("Competitor Pricing Shift (Fanatics Live)", style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 16),
+      const PricingShiftWidget(), // New Vendor Widget
+    ];
+  }
+
+  List<Widget> _buildDistributorView() {
+    return [
+      const Text("Regional Demand Heatmap", style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 16),
+      const HeatmapWidget(), // New Distributor Widget
+      const SizedBox(height: 32),
+      const Text("Macro Market Health ($26B)", style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 16),
+      const MarketHealthWidget(), // New Distributor Widget
+    ];
+  }
 }
+
+// Placeholder Widgets for Vendors and Distributors
+class InventoryListWidget extends StatelessWidget { const InventoryListWidget({Key? key}) : super(key: key); @override Widget build(BuildContext context) { return Container(height: 100, color: Colors.white10, child: const Center(child: Text("Active Inventory Feed", style: TextStyle(color: Colors.white54)))); } }
+class PricingShiftWidget extends StatelessWidget { const PricingShiftWidget({Key? key}) : super(key: key); @override Widget build(BuildContext context) { return Container(height: 100, color: Colors.white10, child: const Center(child: Text("Live Pricing Adjustments", style: TextStyle(color: Colors.white54)))); } }
+class HeatmapWidget extends StatelessWidget { const HeatmapWidget({Key? key}) : super(key: key); @override Widget build(BuildContext context) { return Container(height: 200, color: Colors.white10, child: const Center(child: Text("USA Regional Demand Map", style: TextStyle(color: Colors.white54)))); } }
+class MarketHealthWidget extends StatelessWidget { const MarketHealthWidget({Key? key}) : super(key: key); @override Widget build(BuildContext context) { return Container(height: 100, color: Colors.white10, child: const Center(child: Text("Market Index Performance", style: TextStyle(color: Colors.white54)))); } }
 
 class ArbitrageTicker extends StatelessWidget {
   const ArbitrageTicker({Key? key}) : super(key: key);
