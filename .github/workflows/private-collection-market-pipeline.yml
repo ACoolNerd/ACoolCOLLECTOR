@@ -2,20 +2,61 @@ name: Private Collection Market Pipeline
 
 on:
   pull_request:
-    paths:
-      - "integrations/sportscardspro_pipeline/**"
-      - ".github/workflows/private-collection-market-pipeline.yml"
   push:
     branches:
       - main
-    paths:
-      - "integrations/sportscardspro_pipeline/**"
 
 permissions:
   contents: read
 
 jobs:
-  test:
+  repository-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reject tracked local environment files
+        shell: bash
+        run: |
+          set -euo pipefail
+          tracked_env_files="$(git ls-files | grep -E '(^|/)\.env(\.local|\.[^/]+)?$' | grep -v -E '(^|/)\.env\.example$' || true)"
+          if [[ -n "$tracked_env_files" ]]; then
+            echo "Tracked environment files are prohibited:"
+            echo "$tracked_env_files"
+            exit 1
+          fi
+
+      - name: Reject obvious SportsCardsPro credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          matches="$(grep -RInE \
+            --exclude-dir=.git \
+            --exclude='*.md' \
+            --exclude='.env.example' \
+            --exclude='package-lock.json' \
+            '(SPORTSCARDSPRO_API_(TOKEN|KEY)[[:space:]]*=[[:space:]]*[a-fA-F0-9]{40}|[?&]t=[a-fA-F0-9]{40})' \
+            . || true)"
+          if [[ -n "$matches" ]]; then
+            echo "Potential SportsCardsPro credential committed:"
+            echo "$matches" | sed -E 's/[a-fA-F0-9]{40}/[REDACTED]/g'
+            exit 1
+          fi
+
+      - name: Verify private artifacts are not tracked
+        shell: bash
+        run: |
+          set -euo pipefail
+          prohibited="$(git ls-files | grep -E '(private/images|ACoolCOLLECTION_100_Item_Drive_Manifest\.(json|csv)|listing_candidates\.(json|csv)|earnings_scenario\.json|provider_sync_results\.json)' || true)"
+          if [[ -n "$prohibited" ]]; then
+            echo "Private collection artifact is tracked:"
+            echo "$prohibited"
+            exit 1
+          fi
+
+  pipeline-tests:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -29,9 +70,3 @@ jobs:
         run: python -m compileall .
       - name: Test
         run: python -m unittest -v test_pipeline.py
-      - name: Secret-pattern check
-        run: |
-          if grep -RIE --exclude='.env.example' --exclude='*.md' '[a-f0-9]{40}' .; then
-            echo "Potential static token committed to the pipeline directory"
-            exit 1
-          fi
