@@ -16,7 +16,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Reject tracked local environment files
         shell: bash
         run: |
@@ -30,13 +29,11 @@ jobs:
                 ;;
             esac
           done < <(git ls-files)
-
           if [[ -n "$tracked_env_files" ]]; then
             echo "Tracked environment files are prohibited:"
             printf '%s' "$tracked_env_files"
             exit 1
           fi
-
       - name: Reject obvious provider credentials
         shell: bash
         run: |
@@ -53,7 +50,6 @@ jobs:
             echo "$matches" | sed -E 's/[a-fA-F0-9]{40}/[REDACTED]/g; s/AIza[0-9A-Za-z_-]{35}/[REDACTED]/g'
             exit 1
           fi
-
       - name: Verify private artifacts are not tracked
         shell: bash
         run: |
@@ -96,6 +92,23 @@ jobs:
         run: npm ci
       - name: TypeScript build and tests
         run: npm test
+      - name: Build Cloud Run container
+        run: docker build -t acoolcollector-ci:test .
+
+  infrastructure-validation:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/google-cloud/terraform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - name: Terraform formatting
+        run: terraform fmt -check -recursive
+      - name: Terraform initialization
+        run: terraform init -backend=false
+      - name: Terraform validation
+        run: terraform validate
 
   ai-studio-and-metadata-validation:
     runs-on: ubuntu-latest
@@ -111,6 +124,7 @@ jobs:
           python -m json.tool google-ai-studio/02_CONTEXT_MANIFEST.json >/dev/null
           python -m json.tool google-ai-studio/03_FUNCTION_DECLARATIONS.json >/dev/null
           python -m json.tool google-ai-studio/04_STRUCTURED_OUTPUT_SCHEMAS.json >/dev/null
+          python -m json.tool data/verified_sources/collecting_ecosystem_registry.json >/dev/null
           python -m json.tool web/seo/manifest.webmanifest >/dev/null
           python - <<'PY'
           import xml.etree.ElementTree as ET
@@ -136,6 +150,7 @@ jobs:
             google-ai-studio/03_FUNCTION_DECLARATIONS.json \
             google-ai-studio/04_STRUCTURED_OUTPUT_SCHEMAS.json \
             google-ai-studio/05_EVALUATION_SUITE.md \
-            google-ai-studio/06_DEPLOYMENT_CHECKLIST.md; do
+            google-ai-studio/06_DEPLOYMENT_CHECKLIST.md \
+            google-ai-studio/07_MAJOR_ECOSYSTEM_EXPANSION_PROMPT.md; do
             test -s "$file" || { echo "Missing or empty AI Studio file: $file"; exit 1; }
           done
