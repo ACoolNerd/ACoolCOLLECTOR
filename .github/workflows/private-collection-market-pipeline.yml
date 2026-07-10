@@ -109,6 +109,14 @@ jobs:
         run: terraform init -backend=false
       - name: Terraform validation
         run: terraform validate
+      - name: Validate Google Cloud activation scripts
+        working-directory: .
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/google-cloud/activate-and-plan-development.sh
+          bash -n scripts/google-cloud/bootstrap-and-deploy-development.sh
+          bash -n scripts/google-cloud/enable-maps-ai-experience.sh
 
   ai-studio-and-metadata-validation:
     runs-on: ubuntu-latest
@@ -153,6 +161,8 @@ jobs:
             google-ai-studio/04_STRUCTURED_OUTPUT_SCHEMAS.json \
             google-ai-studio/05_EVALUATION_SUITE.md \
             google-ai-studio/06_DEPLOYMENT_CHECKLIST.md \
-            google-ai-studio/07_MAJOR_ECOSYSTEM_EXPANSION_PROMPT.md; do
+            google-ai-studio/07_MAJOR_ECOSYSTEM_EXPANSION_PROMPT.md \
+            google-ai-studio/08_NATIVE_MULTIDEVICE_EXPANSION_PROMPT.md \
+            google-ai-studio/09_SOCIAL_MARKETPLACE_MAPS_FRAUD_EXPANSION_PROMPT.md; do
             test -s "$file" || { echo "Missing or empty AI Studio file: $file"; exit 1; }
           done
