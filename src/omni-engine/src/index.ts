@@ -12,6 +12,7 @@ import visionRouter from './services/ACoolAPI_Vision.js';
 import marketplaceRouter from './services/ACoolAPI_Marketplace.js';
 import cardShowRouter from './services/ACoolAPI_CardShow.js';
 import discoveryRouter from './services/ACoolAPI_Discovery.js';
+import metadataRouter from './services/ACoolAPI_Metadata.js';
 import stitchRouter from './services/ACoolAPI_Stitch.js';
 
 dotenv.config();
@@ -64,10 +65,15 @@ app.get('/health', (_request, response) => {
       sports_cards_pro_configured: Boolean(process.env.SPORTSCARDSPRO_API_TOKEN),
       supabase_configured: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY),
       vision_configured: Boolean(process.env.GEMINI_API_KEY),
+      quickbooks_configured: Boolean(process.env.INTUIT_CLIENT_ID && process.env.INTUIT_CLIENT_SECRET),
+      google_maps_configured: Boolean(process.env.GOOGLE_MAPS_SERVER_API_KEY || process.env.GOOGLE_MAPS_BROWSER_API_KEY),
+      google_people_configured: Boolean(process.env.GOOGLE_OAUTH_CLIENT_ID && process.env.GOOGLE_OAUTH_CLIENT_SECRET),
+      public_metadata_configured: Boolean(process.env.PUBLIC_SITE_URL?.startsWith('https://')),
       card_show_vendor_intelligence: 'schema_and_api_foundation',
       discovery_events_promotions_recommendations: 'schema_api_and_test_foundation',
       direct_event_ticket_purchase: 'disabled_external_checkout_only',
       public_promotions: 'disabled_until_legal_and_rules_approval',
+      affiliate_programs: 'pending_provider_approval_by_default',
     },
   });
 });
@@ -78,6 +84,7 @@ app.use('/api/v1/vision', visionRouter);
 app.use('/api/v1/marketplace', marketplaceRouter);
 app.use('/api/v1/card-show', cardShowRouter);
 app.use('/api/v1/discovery', discoveryRouter);
+app.use('/api/v1/metadata', metadataRouter);
 app.use('/api/v1/stitch', stitchRouter);
 
 app.get('/api/v1/inventory', (_request, response) => {
