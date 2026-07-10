@@ -1,0 +1,132 @@
+{
+  "project": {
+    "name": "ACoolCOLLECTOR",
+    "tagline": "Cards today. Legacy tomorrow.",
+    "operating_rule": "Rights → Disclosure → Proof",
+    "repository": "https://github.com/ACoolNerd/ACoolCOLLECTOR",
+    "active_branch": "feature/private-collection-market-pipeline",
+    "primary_color": "#E8520F"
+  },
+  "source_of_truth_files": [
+    "README.md",
+    "GEMINI.md",
+    "docs/ACoolARCHITECTURE_Production.md",
+    "docs/ACoolFULL_APP_Production_Matrix.md",
+    "docs/ACoolCARD_SHOW_Vendor_Intelligence.md",
+    "docs/ACoolVENDOR_Reputation_Governance.md",
+    "docs/ACoolDISCOVERY_EVENTS_PROMOTIONS_OS.md",
+    "docs/ACoolDISCOVERY_UI_SCREEN_REGISTER.md",
+    "docs/ACoolRELEASE_SOURCE_SYNC_BACKLOG.md",
+    "docs/ACoolPROMOTIONS_COMPLIANCE_CHECKLIST.md",
+    "docs/ACoolGOOGLE_CLOUD_AI_STUDIO_ARCHITECTURE.md",
+    "docs/ACoolQUICKBOOKS_AFFILIATE_ACCOUNTING.md",
+    "docs/ACoolSEO_SCHEMA_SOCIAL_IMPLEMENTATION.md",
+    "integrations/sportscardspro_pipeline/LISTING_AND_PRICING_PROTOCOL.md",
+    "supabase/migrations/20260710_iam_referral_marketplace.sql",
+    "supabase/migrations/20260710_card_show_vendor_intelligence.sql",
+    "supabase/migrations/20260710_card_show_capture_rpc.sql",
+    "supabase/migrations/20260710_discovery_events_promotions.sql",
+    "supabase/migrations/20260710_google_cloud_seo_affiliates_qbo.sql"
+  ],
+  "runtime_components": [
+    "src/omni-engine/src/index.ts",
+    "src/omni-engine/src/middleware/ACoolIAM.ts",
+    "src/omni-engine/src/services/ACoolAPI_Auth.ts",
+    "src/omni-engine/src/services/ACoolAPI_Referral.ts",
+    "src/omni-engine/src/services/ACoolAPI_Pricing.ts",
+    "src/omni-engine/src/services/ACoolAPI_Marketplace.ts",
+    "src/omni-engine/src/services/ACoolAPI_CardShow.ts",
+    "src/omni-engine/src/services/ACoolVendorReputation.ts",
+    "src/omni-engine/src/services/ACoolAPI_Discovery.ts",
+    "src/omni-engine/src/services/ACoolRecommendationEngine.ts",
+    "src/omni-engine/src/services/ACoolPromotionEngine.ts",
+    "src/omni-engine/src/services/ACoolExperimentEngine.ts",
+    "src/omni-engine/src/services/ACoolStructuredData.ts",
+    "src/omni-engine/src/services/ACoolAPI_Metadata.ts"
+  ],
+  "domains": [
+    "identity_and_access",
+    "private_collection",
+    "card_recognition",
+    "pricing_evidence",
+    "grading_scenarios",
+    "breakvault_custody",
+    "marketplace_and_consignment",
+    "card_show_mode",
+    "vendor_intelligence",
+    "release_radar",
+    "event_ticket_links",
+    "savings_goals",
+    "collection_completion",
+    "deck_completion",
+    "bargain_bin_analysis",
+    "promotions",
+    "experimentation",
+    "quickbooks_accounting",
+    "affiliate_attribution",
+    "google_maps_and_contacts",
+    "seo_and_social_metadata",
+    "audit_and_release_governance"
+  ],
+  "external_integrations": [
+    {
+      "key": "sportscardspro",
+      "status": "implemented_requires_rotated_secret",
+      "boundary": "current guide values only"
+    },
+    {
+      "key": "supabase",
+      "status": "schema_and_api_foundation",
+      "boundary": "migrations require isolated development validation"
+    },
+    {
+      "key": "gemini",
+      "status": "prototype_and_candidate_extraction",
+      "boundary": "not proof of identity authenticity or grade"
+    },
+    {
+      "key": "google_maps_platform",
+      "status": "architecture_and_configuration_foundation",
+      "boundary": "enable only approved APIs with restricted keys"
+    },
+    {
+      "key": "google_people_and_calendar",
+      "status": "opt_in_architecture",
+      "boundary": "user consent and minimum scopes required"
+    },
+    {
+      "key": "quickbooks_online",
+      "status": "schema_and_production_protocol",
+      "boundary": "OAuth sandbox merchant and accounting approval required"
+    },
+    {
+      "key": "affiliate_programs",
+      "status": "registry_and_governance_foundation",
+      "boundary": "no affiliation claim before written approval"
+    }
+  ],
+  "non_negotiable_defaults": {
+    "private_collection": true,
+    "public_listing": false,
+    "public_promotion_entry": false,
+    "direct_ticket_purchase": false,
+    "automatic_purchase": false,
+    "ai_identity_verified": false,
+    "ai_grade_official": false,
+    "affiliate_program_approved": false,
+    "external_partnership_claimed": false
+  },
+  "required_final_evidence": [
+    "files_changed",
+    "migration_results",
+    "test_results",
+    "ci_results",
+    "security_review",
+    "privacy_review",
+    "accessibility_review",
+    "structured_data_validation",
+    "external_integration_status",
+    "unresolved_blockers",
+    "go_no_go_decision"
+  ]
+}
