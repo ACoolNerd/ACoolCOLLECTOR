@@ -21,10 +21,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          tracked_env_files="$(git ls-files | grep -E '(^|/)\.env(\.local|\.[^/]+)?$' | grep -v -E '(^|/)\.env\.example$' || true)"
+          tracked_env_files=""
+          while IFS= read -r file; do
+            base="$(basename "$file")"
+            case "$base" in
+              .env|.env.local|.env.development|.env.production|.env.staging|.env.test)
+                tracked_env_files+="$file"$'\n'
+                ;;
+            esac
+          done < <(git ls-files)
+
           if [[ -n "$tracked_env_files" ]]; then
             echo "Tracked environment files are prohibited:"
-            echo "$tracked_env_files"
+            printf '%s' "$tracked_env_files"
             exit 1
           fi
 
