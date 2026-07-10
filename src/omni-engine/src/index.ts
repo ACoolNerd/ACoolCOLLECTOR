@@ -9,6 +9,8 @@ import { lookupPrice, searchProducts } from './services/ACoolAPI_Pricing.js';
 import authRouter from './services/ACoolAPI_Auth.js';
 import referralRouter from './services/ACoolAPI_Referral.js';
 import visionRouter from './services/ACoolAPI_Vision.js';
+import cloudVisionRouter from './services/ACoolAPI_CloudVision.js';
+import speechRouter from './services/ACoolAPI_Speech.js';
 import marketplaceRouter from './services/ACoolAPI_Marketplace.js';
 import cardShowRouter from './services/ACoolAPI_CardShow.js';
 import discoveryRouter from './services/ACoolAPI_Discovery.js';
@@ -65,7 +67,9 @@ app.get('/health', (_request, response) => {
     integrations: {
       sports_cards_pro_configured: Boolean(process.env.SPORTSCARDSPRO_API_TOKEN),
       supabase_configured: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY),
-      vision_configured: Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_VISION_MODEL),
+      gemini_vision_configured: Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_VISION_MODEL),
+      google_cloud_vision_configured: Boolean(process.env.GOOGLE_CLOUD_PROJECT_ID),
+      google_cloud_tts_configured: Boolean(process.env.GOOGLE_CLOUD_PROJECT_ID),
       quickbooks_configured: Boolean(process.env.INTUIT_CLIENT_ID && process.env.INTUIT_CLIENT_SECRET),
       google_maps_configured: Boolean(process.env.GOOGLE_MAPS_SERVER_API_KEY || process.env.GOOGLE_MAPS_BROWSER_API_KEY),
       google_people_configured: Boolean(process.env.GOOGLE_OAUTH_CLIENT_ID && process.env.GOOGLE_OAUTH_CLIENT_SECRET),
@@ -82,6 +86,8 @@ app.get('/health', (_request, response) => {
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/referrals', referralRouter);
 app.use('/api/v1/vision', visionRouter);
+app.use('/api/v1/cloud-vision', cloudVisionRouter);
+app.use('/api/v1/speech', speechRouter);
 app.use('/api/v1/marketplace', marketplaceRouter);
 app.use('/api/v1/card-show', cardShowRouter);
 app.use('/api/v1/discovery', discoveryRouter);
