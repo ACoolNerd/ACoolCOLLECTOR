@@ -1,61 +1,123 @@
 import { Router } from 'express';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
-dotenv.config();
+import { requireAuth, type ACoolRequest } from '../middleware/ACoolIAM.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const router = Router();
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-// Load DNA Prompt
 const DNA_PATH = path.join(__dirname, '../../../../ACoolPROMPTS/ACoolVISION_Scanner_DNA.md');
-const dnaPrompt = fs.existsSync(DNA_PATH) ? fs.readFileSync(DNA_PATH, 'utf8') : 'Extract card data.';
+const dnaPrompt = fs.existsSync(DNA_PATH)
+  ? fs.readFileSync(DNA_PATH, 'utf8')
+  : 'Extract possible collectible identity fields from the image.';
 
-router.post('/scan', async (req, res) => {
-  const { image } = req.body; // Expecting base64 string
+const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const maxImageBytes = Number(process.env.GEMINI_MAX_IMAGE_BYTES || 8 * 1024 * 1024);
 
-  if (!image) {
-    return res.status(400).json({ error: 'No image data manifested' });
+const normalizeBase64 = (value: unknown): string | null => {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  const comma = trimmed.indexOf(',');
+  const raw = trimmed.startsWith('data:') && comma >= 0 ? trimmed.slice(comma + 1) : trimmed;
+  if (!raw || !/^[A-Za-z0-9+/=\r\n]+$/.test(raw)) return null;
+  return raw.replace(/\s+/g, '');
+};
+
+router.post('/scan', requireAuth, async (request: ACoolRequest, response) => {
+  const { imageBase64, image, mimeType = 'image/jpeg', capturePurpose = 'collection_intake' } = request.body ?? {};
+  const normalizedImage = normalizeBase64(imageBase64 ?? image);
+
+  if (!normalizedImage) {
+    return response.status(400).json({ error: 'valid_base64_image_required' });
+  }
+  if (!allowedMimeTypes.has(mimeType)) {
+    return response.status(400).json({ error: 'unsupported_image_type' });
   }
 
-  if (!process.env.GEMINI_API_KEY) {
-    return res.status(500).json({ error: 'ACoolOMNI Error: Vision API key not seeded' });
+  const estimatedBytes = Math.floor((normalizedImage.length * 3) / 4);
+  if (!Number.isFinite(estimatedBytes) || estimatedBytes <= 0 || estimatedBytes > maxImageBytes) {
+    return response.status(413).json({ error: 'image_size_out_of_range' });
   }
+
+  if (request.header('x-acool-ai-media-consent') !== 'granted') {
+    return response.status(412).json({
+      error: 'ai_media_processing_consent_required',
+      disclosure: 'Image analysis proposes candidate fields only and is not proof of authenticity, ownership, certification, or grade.',
+    });
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY;
+  const modelName = process.env.GEMINI_VISION_MODEL;
+  if (!apiKey || !modelName) {
+    return response.status(503).json({ error: 'vision_service_not_configured' });
+  }
+
+  const extractionInstruction = `
+${dnaPrompt}
+
+Return JSON only. The result is a candidate extraction, never a verified identity or official grade.
+Use this shape:
+{
+  "record_type": "card_recognition_candidate",
+  "overall_confidence": 0,
+  "fields": {
+    "category": {"value": null, "confidence": 0, "evidence": ""},
+    "franchise": {"value": null, "confidence": 0, "evidence": ""},
+    "player_or_character": {"value": null, "confidence": 0, "evidence": ""},
+    "manufacturer": {"value": null, "confidence": 0, "evidence": ""},
+    "year": {"value": null, "confidence": 0, "evidence": ""},
+    "set_name": {"value": null, "confidence": 0, "evidence": ""},
+    "item_number": {"value": null, "confidence": 0, "evidence": ""},
+    "parallel_or_variant": {"value": null, "confidence": 0, "evidence": ""},
+    "language_code": {"value": null, "confidence": 0, "evidence": ""},
+    "grading_company": {"value": null, "confidence": 0, "evidence": ""},
+    "grade_label": {"value": null, "confidence": 0, "evidence": ""},
+    "certification_number": {"value": null, "confidence": 0, "evidence": ""},
+    "serial_number": {"value": null, "confidence": 0, "evidence": ""},
+    "asking_price_text": {"value": null, "confidence": 0, "evidence": ""}
+  },
+  "provider_match_queries": [],
+  "warnings": [],
+  "review_status": "manual_review_required"
+}
+If the image is insufficient, say so in warnings and use review_status "insufficient_image".
+Do not invent unreadable values.
+Capture purpose: ${String(capturePurpose).slice(0, 80)}.
+`;
 
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const client = new GoogleGenerativeAI(apiKey);
+    const model = client.getGenerativeModel({
+      model: modelName,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        temperature: 0.1,
+      },
+    });
 
     const result = await model.generateContent([
-      dnaPrompt,
-      {
-        inlineData: {
-          data: image,
-          mimeType: 'image/jpeg'
-        }
-      }
+      extractionInstruction,
+      { inlineData: { data: normalizedImage, mimeType } },
     ]);
+    const text = result.response.text().trim();
+    const candidate = JSON.parse(text);
 
-    const response = await result.response;
-    const text = response.text();
-    
-    // Clean JSON response (handle potential markdown backticks)
-    const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    const data = JSON.parse(jsonStr);
-
-    res.json({
-      status: 'Zero-Gravity-Success',
-      extractedData: data,
-      timestamp: new Date().toISOString()
+    return response.json({
+      status: 'candidate_extracted',
+      candidate,
+      verified: false,
+      capture_purpose: String(capturePurpose).slice(0, 80),
+      model: modelName,
+      timestamp: new Date().toISOString(),
+      disclosure: 'This AI result requires user or authorized reviewer confirmation and is not proof of authenticity, ownership, certification, or official grade.',
     });
-  } catch (error: any) {
-    console.error('[ACoolOMNI] Vision Error:', error.message);
-    res.status(500).json({ error: 'Vision sequence interrupted' });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'vision_processing_failed';
+    console.error('[ACoolOMNI] Vision processing failed:', message);
+    return response.status(502).json({ error: 'vision_processing_failed' });
   }
 });
 
