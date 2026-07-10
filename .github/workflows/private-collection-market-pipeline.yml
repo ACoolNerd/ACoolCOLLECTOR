@@ -1,0 +1,37 @@
+name: Private Collection Market Pipeline
+
+on:
+  pull_request:
+    paths:
+      - "integrations/sportscardspro_pipeline/**"
+      - ".github/workflows/private-collection-market-pipeline.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "integrations/sportscardspro_pipeline/**"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: integrations/sportscardspro_pipeline
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile
+        run: python -m compileall .
+      - name: Test
+        run: python -m unittest -v test_pipeline.py
+      - name: Secret-pattern check
+        run: |
+          if grep -RIE --exclude='.env.example' --exclude='*.md' '[a-f0-9]{40}' .; then
+            echo "Potential static token committed to the pipeline directory"
+            exit 1
+          fi
