@@ -10,6 +10,9 @@ const allowedPlaceFields = new Set([
   'places.googleMapsUri',
   'places.primaryType',
   'places.businessStatus',
+  'places.regularOpeningHours',
+  'places.rating',
+  'places.userRatingCount',
 ]);
 
 const googleApiKey = () => {
@@ -120,29 +123,94 @@ export const computeRoute = async (input: {
   destination: Coordinate;
   travelMode?: 'DRIVE' | 'WALK' | 'BICYCLE' | 'TRANSIT';
   routingPreference?: 'TRAFFIC_AWARE' | 'TRAFFIC_AWARE_OPTIMAL' | 'TRAFFIC_UNAWARE';
+  languageCode?: string;
+  units?: 'IMPERIAL' | 'METRIC';
+  avoidTolls?: boolean;
+  avoidHighways?: boolean;
+  avoidFerries?: boolean;
 }) => {
   const origin = validateCoordinate(input.origin);
   const destination = validateCoordinate(input.destination);
   const travelMode = input.travelMode || 'DRIVE';
   const routingPreference = input.routingPreference || (travelMode === 'DRIVE' ? 'TRAFFIC_AWARE' : undefined);
+  const languageCode = /^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})?$/.test(input.languageCode || '')
+    ? input.languageCode
+    : 'en-US';
 
   return googleJson('https://routes.googleapis.com/directions/v2:computeRoutes', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-Goog-Api-Key': googleApiKey(),
-      'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline,routes.localizedValues',
+      'X-Goog-FieldMask': [
+        'routes.duration',
+        'routes.distanceMeters',
+        'routes.polyline.encodedPolyline',
+        'routes.localizedValues',
+        'routes.travelAdvisory',
+        'routes.legs.distanceMeters',
+        'routes.legs.duration',
+        'routes.legs.steps.distanceMeters',
+        'routes.legs.steps.staticDuration',
+        'routes.legs.steps.navigationInstruction',
+        'routes.legs.steps.polyline.encodedPolyline',
+      ].join(','),
     },
     body: JSON.stringify({
       origin: { location: { latLng: origin } },
       destination: { location: { latLng: destination } },
       travelMode,
       ...(routingPreference ? { routingPreference } : {}),
+      routeModifiers: {
+        avoidTolls: input.avoidTolls === true,
+        avoidHighways: input.avoidHighways === true,
+        avoidFerries: input.avoidFerries === true,
+      },
       computeAlternativeRoutes: false,
-      languageCode: 'en-US',
-      units: 'IMPERIAL',
+      languageCode,
+      units: input.units || 'IMPERIAL',
     }),
   });
+};
+
+export const computeRouteMatrix = async (input: {
+  origins: Coordinate[];
+  destinations: Coordinate[];
+  travelMode?: 'DRIVE' | 'WALK' | 'BICYCLE' | 'TRANSIT';
+}) => {
+  const origins = input.origins.slice(0, 10).map(validateCoordinate);
+  const destinations = input.destinations.slice(0, 10).map(validateCoordinate);
+  if (!origins.length || !destinations.length) throw new Error('invalid_route_matrix');
+
+  return googleJson('https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': googleApiKey(),
+      'X-Goog-FieldMask': 'originIndex,destinationIndex,status,condition,distanceMeters,duration,localizedValues',
+    },
+    body: JSON.stringify({
+      origins: origins.map((origin) => ({ waypoint: { location: { latLng: origin } } })),
+      destinations: destinations.map((destination) => ({ waypoint: { location: { latLng: destination } } })),
+      travelMode: input.travelMode || 'DRIVE',
+      routingPreference: input.travelMode === 'DRIVE' || !input.travelMode ? 'TRAFFIC_AWARE' : undefined,
+    }),
+  });
+};
+
+export const getStreetViewMetadata = async (input: {
+  coordinate: Coordinate;
+  radiusMeters?: number;
+  source?: 'default' | 'outdoor';
+}) => {
+  const coordinate = validateCoordinate(input.coordinate);
+  const radius = Math.min(Math.max(Number(input.radiusMeters || 50), 1), 10000);
+  const url = new URL('https://maps.googleapis.com/maps/api/streetview/metadata');
+  url.searchParams.set('location', `${coordinate.latitude},${coordinate.longitude}`);
+  url.searchParams.set('radius', String(radius));
+  url.searchParams.set('source', input.source === 'outdoor' ? 'outdoor' : 'default');
+  url.searchParams.set('key', googleApiKey());
+  return googleJson(url.toString(), { method: 'GET' });
 };
 
 export const getTimeZone = async (coordinate: Coordinate, timestamp = Math.floor(Date.now() / 1000)) => {
