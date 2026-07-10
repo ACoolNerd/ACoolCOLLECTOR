@@ -13,6 +13,7 @@ import visionRouter from './services/ACoolAPI_Vision.js';
 import cloudVisionRouter from './services/ACoolAPI_CloudVision.js';
 import speechRouter from './services/ACoolAPI_Speech.js';
 import marketplaceRouter from './services/ACoolAPI_Marketplace.js';
+import communityMarketplaceRouter from './services/ACoolAPI_CommunityMarketplace.js';
 import cardShowRouter from './services/ACoolAPI_CardShow.js';
 import discoveryRouter from './services/ACoolAPI_Discovery.js';
 import metadataRouter from './services/ACoolAPI_Metadata.js';
@@ -81,11 +82,15 @@ app.get('/health', (_request, response) => {
       google_cloud_tts_configured: Boolean(process.env.GOOGLE_CLOUD_PROJECT_ID),
       quickbooks_configured: Boolean(process.env.INTUIT_CLIENT_ID && process.env.INTUIT_CLIENT_SECRET && process.env.INTUIT_REDIRECT_URI),
       google_maps_configured: Boolean(process.env.GOOGLE_MAPS_SERVER_API_KEY || process.env.GOOGLE_MAPS_BROWSER_API_KEY),
+      google_navigation_configured: process.env.GOOGLE_NAVIGATION_ENABLED === 'true',
+      google_street_view_configured: Boolean(process.env.GOOGLE_MAPS_SERVER_API_KEY && process.env.GOOGLE_STREET_VIEW_ENABLED === 'true'),
       google_people_configured: Boolean(process.env.GOOGLE_OAUTH_CLIENT_ID && process.env.GOOGLE_OAUTH_CLIENT_SECRET),
+      music_companion_enabled: process.env.ACOOL_MUSIC_ENABLED === 'true',
       public_metadata_configured: Boolean(process.env.PUBLIC_SITE_URL?.startsWith('https://')),
       issue_8_activation_evidence: 'schema_api_and_scorecard_foundation',
       card_show_vendor_intelligence: 'schema_and_api_foundation',
       discovery_events_promotions_recommendations: 'schema_api_and_test_foundation',
+      social_marketplaces_showcases_trust: 'schema_api_and_test_foundation',
       direct_event_ticket_purchase: 'disabled_external_checkout_only',
       public_promotions: 'disabled_until_legal_and_rules_approval',
       affiliate_programs: 'pending_provider_approval_by_default',
@@ -99,6 +104,7 @@ app.use('/api/v1/vision', visionRouter);
 app.use('/api/v1/cloud-vision', cloudVisionRouter);
 app.use('/api/v1/speech', speechRouter);
 app.use('/api/v1/marketplace', marketplaceRouter);
+app.use('/api/v1/community-marketplace', communityMarketplaceRouter);
 app.use('/api/v1/card-show', cardShowRouter);
 app.use('/api/v1/discovery', discoveryRouter);
 app.use('/api/v1/metadata', metadataRouter);
