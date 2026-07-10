@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Disallow: /app/
+Disallow: /account/
+Disallow: /admin/
+Disallow: /api/
+Disallow: /private/
+Disallow: /oauth/
+Disallow: /checkout/
+Disallow: /vault/
+Disallow: /wishlists/
+Disallow: /savings/
+
+Sitemap: https://acoolcollector.com/sitemap-index.xml
