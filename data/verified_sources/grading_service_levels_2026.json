@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0",
+  "verified_at": "2026-07-10T00:00:00Z",
+  "currency": "USD",
+  "providers": [
+    {
+      "provider_key": "psa",
+      "display_name": "PSA",
+      "official_url": "https://www.psacard.com/services/tradingcardgrading",
+      "relationship_status": "not_affiliated",
+      "services": [
+        { "name": "Regular", "fee_cents": 7999, "max_declared_value_cents": 150000, "turnaround_min_business_days": 40, "turnaround_max_business_days": 50 },
+        { "name": "Express", "fee_cents": 14900, "max_declared_value_cents": 250000, "turnaround_min_business_days": 20, "turnaround_max_business_days": 30 },
+        { "name": "Super Express", "fee_cents": 34900, "max_declared_value_cents": 500000, "turnaround_min_business_days": 7, "turnaround_max_business_days": 10 },
+        { "name": "Walk-Through", "fee_cents": 59900, "max_declared_value_cents": 1000000, "turnaround_min_business_days": 5, "turnaround_max_business_days": 7 }
+      ]
+    },
+    {
+      "provider_key": "beckett",
+      "display_name": "Beckett Grading Services",
+      "official_url": "https://www.beckett.com/grading",
+      "relationship_status": "not_affiliated",
+      "services": [
+        { "name": "Base Without Subgrades", "fee_cents": 1495, "turnaround_min_business_days": 75, "turnaround_max_business_days": null },
+        { "name": "Base With Subgrades", "fee_cents": 1795, "turnaround_min_business_days": 75, "turnaround_max_business_days": null },
+        { "name": "Standard With Subgrades", "fee_cents": 3495, "turnaround_min_business_days": 45, "turnaround_max_business_days": 45 },
+        { "name": "Express With Subgrades", "fee_cents": 7995, "turnaround_min_business_days": 15, "turnaround_max_business_days": 15 },
+        { "name": "Priority With Subgrades", "fee_cents": 12495, "turnaround_min_business_days": 5, "turnaround_max_business_days": 5 }
+      ],
+      "notes": [
+        "Base service may include an additional charge for grade 10 when subgrades are added.",
+        "Turnaround times are estimates and may change."
+      ]
+    }
+  ],
+  "pending_verification": ["cgc", "sgc", "tag"]
+}

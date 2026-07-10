@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0",
+  "verified_at": "2026-07-10T00:00:00Z",
+  "events": [
+    {
+      "key": "fanatics-fest-nyc-2026",
+      "name": "Fanatics Fest NYC 2026",
+      "series": "Fanatics Fest",
+      "starts_on": "2026-07-16",
+      "ends_on": "2026-07-19",
+      "venue": "Javits Center",
+      "city": "New York City",
+      "region": "NY",
+      "country_code": "US",
+      "official_url": "https://www.fanaticsfest.com/",
+      "ticket_url": "https://tickets.fanaticsevents.com/",
+      "verification_status": "official_source_verified"
+    },
+    {
+      "key": "national-sports-collectors-convention-2026",
+      "name": "46th National Sports Collectors Convention",
+      "series": "The National",
+      "starts_on": "2026-07-29",
+      "ends_on": "2026-08-02",
+      "venue": "Donald E. Stephens Convention Center",
+      "city": "Rosemont",
+      "region": "IL",
+      "country_code": "US",
+      "official_url": "https://www.nsccshow.com/",
+      "ticket_url": "https://www.nsccshow.com/",
+      "verification_status": "official_source_verified"
+    },
+    {
+      "key": "comic-con-international-2026",
+      "name": "Comic-Con 2026",
+      "series": "Comic-Con International",
+      "starts_on": "2026-07-23",
+      "ends_on": "2026-07-26",
+      "preview_night": "2026-07-22",
+      "venue": "San Diego Convention Center",
+      "city": "San Diego",
+      "region": "CA",
+      "country_code": "US",
+      "official_url": "https://www.comic-con.org/cc/",
+      "verification_status": "official_source_verified"
+    },
+    {
+      "key": "wondercon-2026",
+      "name": "WonderCon 2026",
+      "series": "WonderCon",
+      "starts_on": "2026-03-27",
+      "ends_on": "2026-03-29",
+      "venue": "Anaheim Convention Center",
+      "city": "Anaheim",
+      "region": "CA",
+      "country_code": "US",
+      "official_url": "https://www.comic-con.org/wc/",
+      "verification_status": "official_source_verified_historical"
+    }
+  ],
+  "linked_schedules": [
+    {
+      "series": "Collect-A-Con",
+      "path": "data/verified_sources/collectacon_2026.json",
+      "official_url": "https://collectaconusa.com/"
+    }
+  ]
+}

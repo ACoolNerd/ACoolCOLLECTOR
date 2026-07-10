@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>https://acoolcollector.com/sitemaps/static.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://acoolcollector.com/sitemaps/events.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://acoolcollector.com/sitemaps/vendors.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://acoolcollector.com/sitemaps/sets.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://acoolcollector.com/sitemaps/products.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://acoolcollector.com/sitemaps/articles.xml</loc>
+  </sitemap>
+</sitemapindex>

@@ -1,0 +1,7 @@
+private/
+.env
+*.secret
+*.token
+output/
+__pycache__/
+.pytest_cache/

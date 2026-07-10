@@ -1,0 +1,79 @@
+name: Native App Foundations
+
+on:
+  pull_request:
+    paths:
+      - "apps/android-native/**"
+      - "apps/apple-native/**"
+      - "schemas/acool-profile.schema.json"
+      - ".github/workflows/native-app-foundations.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-app-foundations-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android-native:
+    name: Android native build and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install stable Android API 36
+        shell: bash
+        run: |
+          set -euo pipefail
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.4.1"
+
+      - name: Build and test Android app
+        shell: bash
+        run: |
+          set -euo pipefail
+          gradle \
+            -p apps/android-native \
+            testDebugUnitTest \
+            assembleDebug \
+            --stacktrace
+
+      - name: Upload Android debug artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: acoolcollector-android-debug-${{ github.sha }}
+          path: apps/android-native/build/outputs/apk/debug/*.apk
+          retention-days: 7
+          if-no-files-found: error
+
+  apple-native:
+    name: Apple native package build and tests
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Record Apple toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Build Apple native package
+        run: swift build --package-path apps/apple-native
+
+      - name: Test Apple native package
+        run: swift test --package-path apps/apple-native

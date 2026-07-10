@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0D0D0F">
+  <meta name="color-scheme" content="dark light">
+
+  <!-- Replace every {{TOKEN}} server-side with validated, escaped, page-specific content. -->
+  <title>{{TITLE}}</title>
+  <meta name="description" content="{{DESCRIPTION}}">
+  <meta name="robots" content="{{ROBOTS}}">
+  <link rel="canonical" href="{{CANONICAL_URL}}">
+
+  <meta property="og:title" content="{{TITLE}}">
+  <meta property="og:type" content="{{OG_TYPE}}">
+  <meta property="og:url" content="{{CANONICAL_URL}}">
+  <meta property="og:image" content="{{OG_IMAGE_URL}}">
+  <meta property="og:image:alt" content="{{OG_IMAGE_ALT}}">
+  <meta property="og:description" content="{{DESCRIPTION}}">
+  <meta property="og:site_name" content="ACoolCOLLECTOR">
+  <meta property="og:locale" content="{{LOCALE}}">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{TITLE}}">
+  <meta name="twitter:description" content="{{DESCRIPTION}}">
+  <meta name="twitter:image" content="{{OG_IMAGE_URL}}">
+  <meta name="twitter:image:alt" content="{{OG_IMAGE_ALT}}">
+
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+
+  <script type="application/ld+json">{{JSON_LD}}</script>
+</head>
+<body>
+  <noscript>ACoolCOLLECTOR requires JavaScript for the authenticated application. Public content must remain server-rendered or pre-rendered for accessibility and discovery.</noscript>
+</body>
+</html>

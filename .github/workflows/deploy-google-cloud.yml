@@ -1,0 +1,201 @@
+name: Deploy ACoolCOLLECTOR to Google Cloud
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: GitHub environment and Google Cloud target
+        required: true
+        type: choice
+        options:
+          - development
+          - production
+        default: development
+      apply:
+        description: Apply the reviewed Terraform plan
+        required: true
+        type: boolean
+        default: false
+      production_confirmation:
+        description: Type DEPLOY PRODUCTION only for a production apply
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: acoolcollector-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ vars.GCP_REGION || 'us-central1' }}
+      GCP_TERRAFORM_STATE_BUCKET: ${{ vars.GCP_TERRAFORM_STATE_BUCKET }}
+      PUBLIC_SITE_URL: ${{ vars.PUBLIC_SITE_URL }}
+      TERRAFORM_DIR: infra/google-cloud/terraform
+      TF_STATE_PREFIX: acoolcollector/${{ inputs.environment }}
+      IMAGE_NAME: acoolcollector-api
+      TF_VAR_environment: ${{ inputs.environment }}
+      TF_VAR_allowed_origins: ${{ vars.ALLOWED_ORIGINS_JSON || '[]' }}
+      TF_VAR_alert_email: ${{ vars.ALERT_EMAIL }}
+      TF_VAR_billing_account_id: ${{ vars.GCP_BILLING_ACCOUNT_ID }}
+      TF_VAR_monthly_budget_usd: ${{ vars.MONTHLY_BUDGET_USD || '250' }}
+      TF_VAR_enable_github_oidc: true
+      TF_VAR_github_repository: ACoolNerd/ACoolCOLLECTOR
+      TF_VAR_github_branch: main
+      PRODUCTION_CONFIRMATION: ${{ inputs.production_confirmation }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud with OIDC
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Validate deployment configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$GCP_PROJECT_ID"
+          test -n "$GCP_TERRAFORM_STATE_BUCKET"
+          test -n "$PUBLIC_SITE_URL"
+          test -n "${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}"
+          test -n "${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}"
+          [[ "$PUBLIC_SITE_URL" == https://* ]]
+
+          if [[ "${{ inputs.environment }}" == "production" && "${{ inputs.apply }}" == "true" ]]; then
+            [[ "$PRODUCTION_CONFIRMATION" == "DEPLOY PRODUCTION" ]]
+          fi
+
+          python - <<'PY'
+          import json, os
+          value = json.loads(os.environ['TF_VAR_allowed_origins'])
+          assert isinstance(value, list)
+          assert all(isinstance(item, str) and item.startswith('https://') for item in value)
+          PY
+
+      - name: Configure Artifact Registry authentication
+        run: gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
+
+      - name: Build immutable container
+        id: image
+        shell: bash
+        run: |
+          set -euo pipefail
+          image="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/acoolcollector/${IMAGE_NAME}:${GITHUB_SHA}"
+          docker build --pull --label "org.opencontainers.image.revision=${GITHUB_SHA}" -t "$image" src/omni-engine
+          docker push "$image"
+          digest="$(gcloud artifacts docker images describe "$image" --format='value(image_summary.digest)')"
+          test -n "$digest"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+          echo "immutable_image=${image}@${digest}" >> "$GITHUB_OUTPUT"
+
+      - name: Terraform init and validate
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          terraform fmt -check -recursive
+          terraform init \
+            -reconfigure \
+            -backend-config="bucket=${GCP_TERRAFORM_STATE_BUCKET}" \
+            -backend-config="prefix=${TF_STATE_PREFIX}"
+          terraform validate
+
+      - name: Build Terraform plan
+        id: plan
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          terraform plan \
+            -out=tfplan \
+            -var="project_id=${GCP_PROJECT_ID}" \
+            -var="region=${GCP_REGION}" \
+            -var="container_image=${{ steps.image.outputs.immutable_image }}" \
+            -var="public_site_url=${PUBLIC_SITE_URL}"
+          terraform show -json tfplan > tfplan.json
+          terraform show -no-color tfplan > tfplan.txt
+          digest="$(sha256sum tfplan.json | awk '{print $1}')"
+          echo "terraform_plan_digest=$digest" >> "$GITHUB_OUTPUT"
+
+      - name: Enforce Terraform plan safety gates
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -Eq 'roles/(owner|editor)' tfplan.txt; then
+            echo "Blocked: Terraform plan contains project Owner or Editor role."
+            exit 1
+          fi
+          if grep -q 'allAuthenticatedUsers' tfplan.txt; then
+            echo "Blocked: Terraform plan contains allAuthenticatedUsers."
+            exit 1
+          fi
+          if grep -q 'public_access_prevention = "inherited"' tfplan.txt; then
+            echo "Blocked: a storage bucket does not enforce public access prevention."
+            exit 1
+          fi
+
+      - name: Upload deployment evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: acoolcollector-${{ inputs.environment }}-${{ github.sha }}-deployment-evidence
+          path: |
+            ${{ env.TERRAFORM_DIR }}/tfplan
+            ${{ env.TERRAFORM_DIR }}/tfplan.json
+            ${{ env.TERRAFORM_DIR }}/tfplan.txt
+          retention-days: 30
+
+      - name: Apply reviewed Terraform plan
+        if: ${{ inputs.apply }}
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        run: terraform apply -auto-approve tfplan
+
+      - name: Verify Cloud Run health
+        if: ${{ inputs.apply }}
+        id: health
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="$(gcloud run services describe acoolcollector-api --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format='value(status.url)')"
+          test -n "$url"
+          for attempt in $(seq 1 12); do
+            if curl --fail --silent --show-error --max-time 10 "${url}/health" > health.json; then
+              break
+            fi
+            sleep 10
+          done
+          test -s health.json
+          grep -q '"status":"ok"' health.json
+          echo "service_url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Deployment summary
+        shell: bash
+        run: |
+          {
+            echo "## ACoolCOLLECTOR deployment evidence"
+            echo "- Environment: ${{ inputs.environment }}"
+            echo "- Commit: ${GITHUB_SHA}"
+            echo "- Image: ${{ steps.image.outputs.immutable_image }}"
+            echo "- Terraform state: gs://${GCP_TERRAFORM_STATE_BUCKET}/${TF_STATE_PREFIX}"
+            echo "- Terraform plan digest: ${{ steps.plan.outputs.terraform_plan_digest }}"
+            echo "- Applied: ${{ inputs.apply }}"
+            echo "- Service URL: ${{ steps.health.outputs.service_url }}"
+            echo "- Monitoring notification configured: ${{ vars.ALERT_EMAIL != '' }}"
+            echo "- Budget configured: ${{ vars.GCP_BILLING_ACCOUNT_ID != '' }}"
+          } >> "$GITHUB_STEP_SUMMARY"

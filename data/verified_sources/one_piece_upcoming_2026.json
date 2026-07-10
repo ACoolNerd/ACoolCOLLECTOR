@@ -1,0 +1,15 @@
+{
+  "franchise": "ONE PIECE CARD GAME",
+  "region": "NA/EU/OC/LATAM/ME",
+  "source": "https://en.onepiece-cardgame.com/products/",
+  "last_verified_at": "2026-07-10T00:00:00Z",
+  "products": [
+    {"code":"ST-32","name":"STARTER DECK -GREEN Roronoa Zoro-","product_type":"starter_deck","release_date":"2026-07-31","msrp_cents":1199,"currency":"USD"},
+    {"code":"ST-33","name":"STARTER DECK -BLUE Kuzan-","product_type":"starter_deck","release_date":"2026-07-31","msrp_cents":1199,"currency":"USD"},
+    {"code":"ST-34","name":"STARTER DECK -PURPLE Charlotte Katakuri-","product_type":"starter_deck","release_date":"2026-07-31","msrp_cents":1199,"currency":"USD"},
+    {"code":"ST-35","name":"STARTER DECK -RED/BLACK Sabo-","product_type":"starter_deck","release_date":"2026-07-31","msrp_cents":1199,"currency":"USD"},
+    {"code":"ST-36","name":"STARTER DECK -YELLOW Eustass Captain Kid-","product_type":"starter_deck","release_date":"2026-07-31","msrp_cents":1199,"currency":"USD"},
+    {"code":"EB-05","name":"EXTRA BOOSTER -ONE PIECE HEROINES EDITION vol.2-","product_type":"booster","release_month":"2026-10","msrp_cents":499,"currency":"USD","date_precision":"month"}
+  ],
+  "notice": "This file contains only products verified on the official products page at the recorded time. Scheduled synchronization should add or update products without guessing missing dates."
+}

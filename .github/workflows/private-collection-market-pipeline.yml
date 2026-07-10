@@ -1,0 +1,168 @@
+name: Private Collection Market Pipeline
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  repository-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Reject tracked local environment files
+        shell: bash
+        run: |
+          set -euo pipefail
+          tracked_env_files=""
+          while IFS= read -r file; do
+            base="$(basename "$file")"
+            case "$base" in
+              .env|.env.local|.env.development|.env.production|.env.staging|.env.test)
+                tracked_env_files+="$file"$'\n'
+                ;;
+            esac
+          done < <(git ls-files)
+          if [[ -n "$tracked_env_files" ]]; then
+            echo "Tracked environment files are prohibited:"
+            printf '%s' "$tracked_env_files"
+            exit 1
+          fi
+      - name: Reject obvious provider credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          matches="$(grep -RInE \
+            --exclude-dir=.git \
+            --exclude='*.md' \
+            --exclude='.env.example' \
+            --exclude='package-lock.json' \
+            '(SPORTSCARDSPRO_API_(TOKEN|KEY)[[:space:]]*=[[:space:]]*[a-fA-F0-9]{40}|[?&]t=[a-fA-F0-9]{40}|AIza[0-9A-Za-z_-]{35}|GEMINI_API_KEY[[:space:]]*=[[:space:]]*[^[:space:]]+|GOOGLE_MAPS_[A-Z_]*API_KEY[[:space:]]*=[[:space:]]*[^[:space:]]+|INTUIT_CLIENT_SECRET[[:space:]]*=[[:space:]]*[^[:space:]]+|SUPABASE_SERVICE_ROLE_KEY[[:space:]]*=[[:space:]]*[^[:space:]]+|STRIPE_SECRET_KEY[[:space:]]*=[[:space:]]*[^[:space:]]+)' \
+            . || true)"
+          if [[ -n "$matches" ]]; then
+            echo "Potential provider credential committed:"
+            echo "$matches" | sed -E 's/[a-fA-F0-9]{40}/[REDACTED]/g; s/AIza[0-9A-Za-z_-]{35}/[REDACTED]/g'
+            exit 1
+          fi
+      - name: Verify private artifacts are not tracked
+        shell: bash
+        run: |
+          set -euo pipefail
+          prohibited="$(git ls-files | grep -E '(private/images|ACoolCOLLECTION_100_Item_Drive_Manifest\.(json|csv)|listing_candidates\.(json|csv)|earnings_scenario\.json|provider_sync_results\.json|oauth_tokens|signed_urls|private_contacts)' || true)"
+          if [[ -n "$prohibited" ]]; then
+            echo "Private collection or credential artifact is tracked:"
+            echo "$prohibited"
+            exit 1
+          fi
+
+  pipeline-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: integrations/sportscardspro_pipeline
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile
+        run: python -m compileall .
+      - name: Test
+        run: python -m unittest -v test_pipeline.py
+
+  omni-engine-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/omni-engine
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: src/omni-engine/package-lock.json
+      - name: Install locked dependencies
+        run: npm ci
+      - name: TypeScript build and tests
+        run: npm test
+      - name: Build Cloud Run container
+        run: docker build -t acoolcollector-ci:test .
+
+  infrastructure-validation:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/google-cloud/terraform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - name: Terraform formatting
+        run: terraform fmt -check -recursive
+      - name: Terraform initialization
+        run: terraform init -backend=false
+      - name: Terraform validation
+        run: terraform validate
+      - name: Validate Google Cloud activation scripts
+        working-directory: .
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/google-cloud/activate-and-plan-development.sh
+          bash -n scripts/google-cloud/bootstrap-and-deploy-development.sh
+          bash -n scripts/google-cloud/enable-maps-ai-experience.sh
+
+  ai-studio-and-metadata-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate JSON and XML files
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m json.tool google-ai-studio/02_CONTEXT_MANIFEST.json >/dev/null
+          python -m json.tool google-ai-studio/03_FUNCTION_DECLARATIONS.json >/dev/null
+          python -m json.tool google-ai-studio/04_STRUCTURED_OUTPUT_SCHEMAS.json >/dev/null
+          python -m json.tool data/verified_sources/collecting_ecosystem_registry.json >/dev/null
+          python -m json.tool data/verified_sources/major_events_2026.json >/dev/null
+          python -m json.tool data/verified_sources/grading_service_levels_2026.json >/dev/null
+          python -m json.tool web/seo/manifest.webmanifest >/dev/null
+          python - <<'PY'
+          import xml.etree.ElementTree as ET
+          ET.parse('web/seo/sitemap-index.xml')
+          PY
+      - name: Verify required Open Graph and discovery tags
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=web/seo/head-template.html
+          for required in 'og:title' 'og:type' 'og:image' 'og:url' 'og:image:alt' 'rel="canonical"' 'application/ld+json' 'twitter:card'; do
+            grep -q "$required" "$file" || { echo "Missing metadata token: $required"; exit 1; }
+          done
+          grep -q '^Sitemap: https://acoolcollector.com/sitemap-index.xml$' web/seo/robots.txt
+      - name: Verify Google AI Studio package is complete
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in \
+            google-ai-studio/00_SYSTEM_INSTRUCTIONS.md \
+            google-ai-studio/01_MASTER_BUILD_PROMPT.md \
+            google-ai-studio/02_CONTEXT_MANIFEST.json \
+            google-ai-studio/03_FUNCTION_DECLARATIONS.json \
+            google-ai-studio/04_STRUCTURED_OUTPUT_SCHEMAS.json \
+            google-ai-studio/05_EVALUATION_SUITE.md \
+            google-ai-studio/06_DEPLOYMENT_CHECKLIST.md \
+            google-ai-studio/07_MAJOR_ECOSYSTEM_EXPANSION_PROMPT.md \
+            google-ai-studio/08_NATIVE_MULTIDEVICE_EXPANSION_PROMPT.md \
+            google-ai-studio/09_SOCIAL_MARKETPLACE_MAPS_FRAUD_EXPANSION_PROMPT.md; do
+            test -s "$file" || { echo "Missing or empty AI Studio file: $file"; exit 1; }
+          done

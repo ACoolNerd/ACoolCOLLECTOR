@@ -1,0 +1,232 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://acoolcollector.com/schemas/acool-profile.schema.json",
+  "title": "ACoolCOLLECTOR Profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profileId",
+    "userId",
+    "username",
+    "profileType",
+    "privacy",
+    "accessibility",
+    "preferences",
+    "trust",
+    "createdAt",
+    "updatedAt"
+  ],
+  "properties": {
+    "profileId": { "type": "string", "format": "uuid" },
+    "userId": { "type": "string", "format": "uuid" },
+    "organizationId": { "type": ["string", "null"], "format": "uuid" },
+    "username": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 40,
+      "pattern": "^[A-Za-z0-9._-]+$"
+    },
+    "displayName": { "type": ["string", "null"], "maxLength": 100 },
+    "bio": { "type": ["string", "null"], "maxLength": 500 },
+    "avatarAssetId": { "type": ["string", "null"], "format": "uuid" },
+    "homeRegion": { "type": ["string", "null"], "maxLength": 100 },
+    "preferredCurrency": { "type": "string", "pattern": "^[A-Z]{3}$", "default": "USD" },
+    "profileType": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "collector",
+          "dealer",
+          "vendor",
+          "breaker",
+          "consignor",
+          "shop",
+          "submission_center",
+          "event_organizer",
+          "content_creator",
+          "administrator"
+        ]
+      }
+    },
+    "interests": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "categories": { "$ref": "#/$defs/stringSet" },
+        "franchises": { "$ref": "#/$defs/stringSet" },
+        "sports": { "$ref": "#/$defs/stringSet" },
+        "games": { "$ref": "#/$defs/stringSet" },
+        "players": { "$ref": "#/$defs/stringSet" },
+        "characters": { "$ref": "#/$defs/stringSet" },
+        "teams": { "$ref": "#/$defs/stringSet" },
+        "sets": { "$ref": "#/$defs/stringSet" },
+        "artists": { "$ref": "#/$defs/stringSet" },
+        "eras": { "$ref": "#/$defs/stringSet" },
+        "cardTypes": { "$ref": "#/$defs/stringSet" }
+      }
+    },
+    "goals": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["goalId", "goalType", "title", "status"],
+        "properties": {
+          "goalId": { "type": "string", "format": "uuid" },
+          "goalType": {
+            "enum": [
+              "base_set",
+              "master_set",
+              "deck",
+              "player_run",
+              "character_run",
+              "team_run",
+              "artist_run",
+              "grail",
+              "grading",
+              "show_attendance",
+              "savings",
+              "custom"
+            ]
+          },
+          "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "status": { "enum": ["planned", "active", "paused", "complete", "archived"] },
+          "targetDate": { "type": ["string", "null"], "format": "date" },
+          "budgetCents": { "type": ["integer", "null"], "minimum": 0 },
+          "isPublic": { "type": "boolean", "default": false }
+        }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profileVisibility",
+        "collectionVisibility",
+        "valueVisibility",
+        "wishlistVisibility",
+        "eventAttendanceVisibility",
+        "vendorNotesVisibility"
+      ],
+      "properties": {
+        "profileVisibility": { "$ref": "#/$defs/visibility" },
+        "collectionVisibility": { "$ref": "#/$defs/visibility" },
+        "valueVisibility": { "$ref": "#/$defs/visibility" },
+        "wishlistVisibility": { "$ref": "#/$defs/visibility" },
+        "eventAttendanceVisibility": { "$ref": "#/$defs/visibility" },
+        "vendorNotesVisibility": { "const": "private" },
+        "allowSearchIndexing": { "type": "boolean", "default": false },
+        "allowProfileRecommendations": { "type": "boolean", "default": true },
+        "allowResearchAnalytics": { "type": "boolean", "default": false }
+      }
+    },
+    "accessibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["textScale", "reduceMotion", "highContrast", "screenReaderOptimized"],
+      "properties": {
+        "textScale": { "type": "number", "minimum": 0.8, "maximum": 2.0, "default": 1.0 },
+        "reduceMotion": { "type": "boolean", "default": false },
+        "highContrast": { "type": "boolean", "default": false },
+        "screenReaderOptimized": { "type": "boolean", "default": false },
+        "colorVisionMode": {
+          "enum": ["standard", "protanopia", "deuteranopia", "tritanopia", "monochrome"]
+        },
+        "hapticsEnabled": { "type": "boolean", "default": true },
+        "speechRate": { "type": "number", "minimum": 0.5, "maximum": 2.0, "default": 1.0 },
+        "captionsEnabled": { "type": "boolean", "default": true }
+      }
+    },
+    "preferences": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["theme", "defaultLanding", "notifications"],
+      "properties": {
+        "theme": { "enum": ["system", "light", "dark", "high_contrast"] },
+        "defaultLanding": {
+          "enum": ["home", "scanner", "collection", "wishlist", "show_mode", "portfolio"]
+        },
+        "notifications": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "push": { "type": "boolean", "default": true },
+            "email": { "type": "boolean", "default": true },
+            "sms": { "type": "boolean", "default": false },
+            "priceAlerts": { "type": "boolean", "default": true },
+            "releaseAlerts": { "type": "boolean", "default": true },
+            "showAlerts": { "type": "boolean", "default": true },
+            "gradingAlerts": { "type": "boolean", "default": true },
+            "securityAlerts": { "const": true }
+          }
+        }
+      }
+    },
+    "trust": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["emailVerified", "mfaEnrolled", "passkeyCount", "businessVerificationStatus"],
+      "properties": {
+        "emailVerified": { "type": "boolean" },
+        "phoneVerified": { "type": "boolean", "default": false },
+        "mfaEnrolled": { "type": "boolean" },
+        "passkeyCount": { "type": "integer", "minimum": 0 },
+        "businessVerificationStatus": {
+          "enum": ["not_applicable", "not_started", "pending", "verified", "rejected", "expired"]
+        },
+        "accountStanding": { "enum": ["good", "limited", "suspended", "closed"] }
+      }
+    },
+    "publicLinks": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["platform", "url", "verificationStatus"],
+        "properties": {
+          "platform": {
+            "enum": ["website", "instagram", "youtube", "whatsapp_business", "telegram", "tiktok", "facebook", "x", "other"]
+          },
+          "url": { "type": "string", "format": "uri", "pattern": "^https://" },
+          "verificationStatus": { "enum": ["unverified", "pending", "verified", "rejected", "removed"] },
+          "lastVerifiedAt": { "type": ["string", "null"], "format": "date-time" }
+        }
+      }
+    },
+    "deviceLinks": {
+      "type": "array",
+      "maxItems": 30,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["deviceId", "platform", "trusted", "lastSeenAt"],
+        "properties": {
+          "deviceId": { "type": "string", "format": "uuid" },
+          "platform": {
+            "enum": ["android", "wear_os", "android_xr", "meta_quest", "ios", "ipados", "macos", "watchos", "visionos", "web"]
+          },
+          "trusted": { "type": "boolean" },
+          "lastSeenAt": { "type": "string", "format": "date-time" },
+          "pushEnabled": { "type": "boolean", "default": false }
+        }
+      }
+    },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "schemaVersion": { "type": "integer", "minimum": 1, "default": 1 }
+  },
+  "$defs": {
+    "visibility": {
+      "enum": ["private", "connections", "members", "public"]
+    },
+    "stringSet": {
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 500,
+      "items": { "type": "string", "minLength": 1, "maxLength": 160 }
+    }
+  }
+}

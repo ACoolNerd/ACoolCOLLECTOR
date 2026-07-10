@@ -1,0 +1,22 @@
+{
+  "series": "Collect-A-Con",
+  "source": "https://collectaconusa.com/",
+  "ticket_provider": "Universe",
+  "last_verified_at": "2026-07-10T00:00:00Z",
+  "purchase_mode": "official_external_checkout",
+  "events": [
+    {"name":"Collect-A-Con New Jersey","city":"Edison","region":"NJ","starts_on":"2026-07-11","ends_on":"2026-07-12","official_url":"https://collectaconusa.com/newjersey/","ticket_url":"https://www.universe.com/events/collect-a-con-new-jersey-tickets-2PGRNS"},
+    {"name":"Collect-A-Con Minneapolis","city":"Minneapolis","region":"MN","starts_on":"2026-07-18","ends_on":"2026-07-19","official_url":"https://collectaconusa.com/minneapolis/","ticket_url":"https://www.universe.com/events/collect-a-con-minneapolis-mn-tickets-753L6V"},
+    {"name":"Collect-A-Con Los Angeles","city":"Los Angeles","region":"CA","starts_on":"2026-08-01","ends_on":"2026-08-02","official_url":"https://collectaconusa.com/losangeles/","ticket_url":"https://www.universe.com/events/collect-a-con-los-angeles-ca-tickets-W0MHL8"},
+    {"name":"Collect-A-Con San Antonio","city":"San Antonio","region":"TX","starts_on":"2026-08-15","ends_on":"2026-08-16","official_url":"https://collectaconusa.com/san-antonio/","ticket_url":"https://www.universe.com/events/collect-a-con-san-antonio-tx-tickets-G89NQR"},
+    {"name":"Collect-A-Con Charlotte","city":"Charlotte","region":"NC","starts_on":"2026-08-22","ends_on":"2026-08-23","official_url":"https://collectaconusa.com/charlotte/","ticket_url":"https://www.universe.com/events/collect-a-con-charlotte-nc-tickets-VK13B0"},
+    {"name":"Collect-A-Con Richmond","city":"Richmond","region":"VA","starts_on":"2026-08-29","ends_on":"2026-08-30","official_url":"https://collectaconusa.com/richmond/","ticket_url":"https://www.universe.com/events/collect-a-con-richmond-va-tickets-6NK4R3"},
+    {"name":"Collect-A-Con San Francisco","city":"San Francisco","region":"CA","starts_on":"2026-09-12","ends_on":"2026-09-13","official_url":"https://collectaconusa.com/san-francisco/","ticket_url":"https://www.universe.com/events/collect-a-con-san-francisco-ca-tickets-2L05J4"},
+    {"name":"Collect-A-Con Atlanta 2","city":"Atlanta","region":"GA","starts_on":"2026-09-26","ends_on":"2026-09-27","official_url":"https://collectaconusa.com/atlanta-2/","ticket_url":"https://www.universe.com/events/collect-a-con-atlanta-2-ga-tickets-WHVL4T"},
+    {"name":"Collect-A-Con Chicago 2","city":"Chicago","region":"IL","starts_on":"2026-10-10","ends_on":"2026-10-11","official_url":"https://collectaconusa.com/chicago-2/","ticket_url":"https://www.universe.com/events/collect-a-con-chicago-2-il-tickets-63HX4L"},
+    {"name":"Collect-A-Con Dallas","city":"Dallas","region":"TX","starts_on":"2026-10-24","ends_on":"2026-10-25","official_url":"https://collectaconusa.com/dallas/","ticket_url":"https://www.universe.com/events/collect-a-con-dallas-tx-tickets-13NKP0"},
+    {"name":"Collect-A-Con Houston 2","city":"Houston","region":"TX","starts_on":"2026-11-07","ends_on":"2026-11-08","official_url":"https://collectaconusa.com/houston2/","ticket_url":"https://www.universe.com/events/collect-a-con-houston-2-tx-tickets-FXZ3PL"},
+    {"name":"Collect-A-Con New Jersey 2","city":"Edison","region":"NJ","starts_on":"2026-11-21","ends_on":"2026-11-22","official_url":"https://collectaconusa.com/new-jersey-2/","ticket_url":"https://www.universe.com/events/collect-a-con-new-jersey-2-tickets-CK5907"},
+    {"name":"Collect-A-Con Los Angeles 2","city":"Los Angeles","region":"CA","starts_on":"2026-12-19","ends_on":"2026-12-20","official_url":"https://collectaconusa.com/losangeles2/","ticket_url":"https://www.universe.com/events/collect-a-con-los-angeles-2-ca-tickets-9NVCZT"}
+  ]
+}

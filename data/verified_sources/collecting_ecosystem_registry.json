@@ -1,0 +1,142 @@
+{
+  "schema_version": "1.0",
+  "verified_at": "2026-07-10T00:00:00Z",
+  "policy": {
+    "relationship_default": "not_affiliated",
+    "official_partner_claim_requires_written_approval": true,
+    "public_dates_require_official_source": true,
+    "private_data_scraping_prohibited": true
+  },
+  "event_series": [
+    {
+      "key": "fanatics-fest",
+      "name": "Fanatics Fest",
+      "official_url": "https://www.fanaticsfest.com/",
+      "status": "official_source_verified",
+      "next_event": {
+        "name": "Fanatics Fest NYC 2026",
+        "starts_on": "2026-07-16",
+        "ends_on": "2026-07-19",
+        "venue": "Javits Center",
+        "city": "New York City",
+        "ticket_url": "https://tickets.fanaticsevents.com/"
+      }
+    },
+    {
+      "key": "collect-a-con",
+      "name": "Collect-A-Con",
+      "official_url": "https://collectaconusa.com/",
+      "status": "official_source_verified",
+      "schedule_source": "data/verified_sources/collectacon_2026.json"
+    },
+    {
+      "key": "the-national",
+      "name": "National Sports Collectors Convention",
+      "official_url": "https://www.nsccshow.com/",
+      "status": "official_source_registered"
+    },
+    {
+      "key": "comic-con-international",
+      "name": "Comic-Con International",
+      "official_url": "https://www.comic-con.org/cc/",
+      "status": "official_source_registered"
+    },
+    {
+      "key": "wondercon",
+      "name": "WonderCon",
+      "official_url": "https://www.comic-con.org/wc/",
+      "status": "official_source_registered"
+    },
+    {
+      "key": "dallas-card-show",
+      "name": "Dallas Card Show",
+      "official_url": "https://dallascardshow.com/",
+      "status": "pending_source_verification"
+    },
+    {
+      "key": "burbank-card-show",
+      "name": "Burbank Card Show",
+      "official_url": null,
+      "status": "pending_official_url_confirmation"
+    },
+    {
+      "key": "sport-card-expo",
+      "name": "Sport Card Expo",
+      "official_url": "https://sportcardexpo.com/",
+      "status": "pending_source_verification"
+    },
+    {
+      "key": "tristar-houston",
+      "name": "TRISTAR Houston Collectors Show",
+      "official_url": "https://www.tristarproductions.com/",
+      "status": "pending_source_verification"
+    },
+    {
+      "key": "culture-collision",
+      "name": "Culture Collision Trade Show",
+      "official_url": "https://culturecollisiontradeshow.com/",
+      "status": "pending_source_verification"
+    }
+  ],
+  "retail_and_marketplace_targets": [
+    {
+      "key": "burbank-sportscards",
+      "name": "Burbank Sportscards",
+      "official_url": "https://www.burbanksportscards.com/",
+      "relationship_status": "research_only_not_affiliated",
+      "integration_targets": ["vendor_profile", "public_store_location", "approved_inventory_feed", "event_appearances", "affiliate_or_referral_if_approved"],
+      "verification_status": "official_url_confirmation_required"
+    },
+    {
+      "key": "cardvault-by-tom-brady",
+      "name": "CardVault by Tom Brady",
+      "official_url": "https://cardvaultbytombrady.com/",
+      "relationship_status": "research_only_not_affiliated",
+      "integration_targets": ["vendor_profile", "store_locations", "public_events", "approved_inventory_or_referral_feed"]
+    },
+    {
+      "key": "cardshq",
+      "name": "CardsHQ",
+      "official_url": "https://www.cardshq.com/",
+      "relationship_status": "research_only_not_affiliated",
+      "integration_targets": ["vendor_profile", "atlanta_location", "events", "grading_submissions", "approved_inventory_or_referral_feed"]
+    }
+  ],
+  "grading_targets": [
+    {
+      "key": "psa",
+      "name": "PSA",
+      "official_url": "https://www.psacard.com/services/tradingcardgrading",
+      "relationship_status": "not_affiliated",
+      "integration_targets": ["service_levels", "certification_lookup_link", "submission_tracking_if_authorized", "dealer_program_if_approved"]
+    },
+    {
+      "key": "beckett",
+      "name": "Beckett Grading Services",
+      "official_url": "https://www.beckett.com/grading",
+      "relationship_status": "not_affiliated",
+      "integration_targets": ["service_levels", "certification_lookup_link", "submission_tracking_if_authorized"]
+    },
+    {
+      "key": "cgc-cards",
+      "name": "CGC Cards",
+      "official_url": "https://www.cgccards.com/",
+      "relationship_status": "not_affiliated",
+      "integration_targets": ["service_levels", "certification_lookup_link", "submission_tracking_if_authorized"]
+    },
+    {
+      "key": "sgc",
+      "name": "SGC",
+      "official_url": "https://www.gosgc.com/",
+      "relationship_status": "not_affiliated",
+      "integration_targets": ["service_levels", "certification_lookup_link", "submission_tracking_if_authorized"]
+    },
+    {
+      "key": "tag",
+      "name": "TAG Grading",
+      "official_url": "https://taggrading.com/",
+      "relationship_status": "not_affiliated",
+      "integration_targets": ["service_levels", "certification_lookup_link", "submission_tracking_if_authorized"]
+    }
+  ]
+}
