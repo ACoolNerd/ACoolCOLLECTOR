@@ -1,0 +1,162 @@
+{
+  "card_recognition_candidate": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["record_type", "overall_confidence", "fields", "warnings", "review_status"],
+    "properties": {
+      "record_type": { "const": "card_recognition_candidate" },
+      "overall_confidence": { "type": "number", "minimum": 0, "maximum": 100 },
+      "fields": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "category": { "$ref": "#/$defs/candidateField" },
+          "franchise": { "$ref": "#/$defs/candidateField" },
+          "player_or_character": { "$ref": "#/$defs/candidateField" },
+          "manufacturer": { "$ref": "#/$defs/candidateField" },
+          "year": { "$ref": "#/$defs/candidateField" },
+          "set_name": { "$ref": "#/$defs/candidateField" },
+          "item_number": { "$ref": "#/$defs/candidateField" },
+          "parallel_or_variant": { "$ref": "#/$defs/candidateField" },
+          "language_code": { "$ref": "#/$defs/candidateField" },
+          "grading_company": { "$ref": "#/$defs/candidateField" },
+          "grade_label": { "$ref": "#/$defs/candidateField" },
+          "certification_number": { "$ref": "#/$defs/candidateField" },
+          "serial_number": { "$ref": "#/$defs/candidateField" },
+          "asking_price_text": { "$ref": "#/$defs/candidateField" }
+        }
+      },
+      "provider_match_queries": {
+        "type": "array",
+        "maxItems": 5,
+        "items": { "type": "string", "maxLength": 200 }
+      },
+      "warnings": {
+        "type": "array",
+        "items": { "type": "string", "maxLength": 300 }
+      },
+      "review_status": {
+        "type": "string",
+        "enum": ["manual_review_required", "candidate_ready", "insufficient_image"]
+      }
+    },
+    "$defs": {
+      "candidateField": {
+        "type": ["object", "null"],
+        "additionalProperties": false,
+        "required": ["value", "confidence", "evidence"],
+        "properties": {
+          "value": { "type": ["string", "null"] },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 100 },
+          "evidence": { "type": "string", "maxLength": 500 }
+        }
+      }
+    }
+  },
+  "recommendation_result": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["recommendation_type", "generated_at", "source_freshness", "items", "warnings", "human_confirmation_required"],
+    "properties": {
+      "recommendation_type": {
+        "type": "string",
+        "enum": ["collection_completion", "deck_completion", "bargain_grading", "event_budget", "vendor_comparison"]
+      },
+      "generated_at": { "type": "string", "format": "date-time" },
+      "source_freshness": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source", "last_verified_at", "status"],
+          "properties": {
+            "source": { "type": "string" },
+            "last_verified_at": { "type": ["string", "null"], "format": "date-time" },
+            "status": { "type": "string", "enum": ["current", "stale", "missing", "pending_verification"] }
+          }
+        }
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["rank", "subject_reference", "action", "reason", "confidence", "estimated_cost_cents", "risks", "alternatives"],
+          "properties": {
+            "rank": { "type": "integer", "minimum": 1 },
+            "subject_reference": { "type": "string" },
+            "action": { "type": "string" },
+            "reason": { "type": "string" },
+            "confidence": { "type": "number", "minimum": 0, "maximum": 100 },
+            "estimated_cost_cents": { "type": ["integer", "null"], "minimum": 0 },
+            "currency": { "type": "string", "default": "USD" },
+            "risks": { "type": "array", "items": { "type": "string" } },
+            "alternatives": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      },
+      "warnings": { "type": "array", "items": { "type": "string" } },
+      "human_confirmation_required": { "const": true }
+    }
+  },
+  "vendor_evidence_summary": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["vendor_id", "score_status", "overall_score", "evidence_confidence", "components", "evidence_counts", "explanation", "disclosures"],
+    "properties": {
+      "vendor_id": { "type": "string" },
+      "score_status": {
+        "type": "string",
+        "enum": ["insufficient_evidence", "provisional", "established", "under_review"]
+      },
+      "overall_score": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+      "evidence_confidence": { "type": "number", "minimum": 0, "maximum": 100 },
+      "components": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "transaction_reliability": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+          "review_quality": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+          "identity_verification": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+          "fulfillment_reliability": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+          "communication": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+          "cross_platform_consistency": { "type": ["number", "null"], "minimum": 0, "maximum": 100 }
+        }
+      },
+      "evidence_counts": { "type": "object" },
+      "explanation": { "type": "array", "items": { "type": "string" } },
+      "disclosures": { "type": "array", "items": { "type": "string" } }
+    }
+  },
+  "source_sync_result": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["source_key", "started_at", "finished_at", "status", "records_seen", "records_created", "records_updated", "records_rejected", "changes", "errors"],
+    "properties": {
+      "source_key": { "type": "string" },
+      "started_at": { "type": "string", "format": "date-time" },
+      "finished_at": { "type": "string", "format": "date-time" },
+      "status": { "type": "string", "enum": ["success", "partial", "failed", "no_change"] },
+      "records_seen": { "type": "integer", "minimum": 0 },
+      "records_created": { "type": "integer", "minimum": 0 },
+      "records_updated": { "type": "integer", "minimum": 0 },
+      "records_rejected": { "type": "integer", "minimum": 0 },
+      "changes": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["external_reference", "change_type", "source_url", "source_last_verified_at"],
+          "properties": {
+            "external_reference": { "type": "string" },
+            "change_type": { "type": "string", "enum": ["created", "updated", "unchanged", "rejected"] },
+            "source_url": { "type": "string", "format": "uri" },
+            "source_last_verified_at": { "type": "string", "format": "date-time" },
+            "date_precision": { "type": "string", "enum": ["exact", "month", "quarter", "year", "unknown"] },
+            "reason": { "type": "string" }
+          }
+        }
+      },
+      "errors": { "type": "array", "items": { "type": "string" } }
+    }
+  }
+}
