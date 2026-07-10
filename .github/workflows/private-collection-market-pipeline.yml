@@ -125,6 +125,8 @@ jobs:
           python -m json.tool google-ai-studio/03_FUNCTION_DECLARATIONS.json >/dev/null
           python -m json.tool google-ai-studio/04_STRUCTURED_OUTPUT_SCHEMAS.json >/dev/null
           python -m json.tool data/verified_sources/collecting_ecosystem_registry.json >/dev/null
+          python -m json.tool data/verified_sources/major_events_2026.json >/dev/null
+          python -m json.tool data/verified_sources/grading_service_levels_2026.json >/dev/null
           python -m json.tool web/seo/manifest.webmanifest >/dev/null
           python - <<'PY'
           import xml.etree.ElementTree as ET
