@@ -45,7 +45,7 @@ resource "google_monitoring_alert_policy" "uptime_failure" {
   conditions {
     display_name = "Health endpoint failed"
     condition_threshold {
-      filter = "resource.type = \"uptime_url\" AND metric.type = \"monitoring.googleapis.com/uptime_check/check_passed\" AND metric.label.check_id = \"${google_monitoring_uptime_check_config.api_health.uptime_check_id}\""
+      filter          = "resource.type = \"uptime_url\" AND metric.type = \"monitoring.googleapis.com/uptime_check/check_passed\" AND metric.label.check_id = \"${google_monitoring_uptime_check_config.api_health.uptime_check_id}\""
       duration        = "120s"
       comparison      = "COMPARISON_LT"
       threshold_value = 1
@@ -126,7 +126,7 @@ resource "google_billing_budget" "monthly" {
   }
 
   all_updates_rule {
-    disable_default_iam_recipients = false
+    disable_default_iam_recipients     = false
     monitoring_notification_channels = google_monitoring_notification_channel.email[*].name
   }
 }
