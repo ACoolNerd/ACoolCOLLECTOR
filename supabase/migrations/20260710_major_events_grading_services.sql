@@ -26,7 +26,7 @@ on conflict (card_show_id, provider_name, ticket_type) do update set
   source_last_verified_at=excluded.source_last_verified_at;
 
 insert into public.event_ticket_offers(card_show_id, provider_name, ticket_type, price_cents, currency, purchase_url, purchase_mode, availability_status, source_last_verified_at)
-select id, 'National Sports Collectors Convention', 'general_admission', 2500, 'USD', 'https://www.nsccshow.com/', 'external_checkout', 'available', '2026-07-10T00:00:00Z'
+select id, 'National Sports Collectors Convention', 'general_admission', 3000, 'USD', 'https://www.nsccshow.com/', 'external_checkout', 'available', '2026-07-10T00:00:00Z'
 from public.card_shows
 where name='46th National Sports Collectors Convention'
 on conflict (card_show_id, provider_name, ticket_type) do update set
