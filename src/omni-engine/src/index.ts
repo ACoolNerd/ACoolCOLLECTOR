@@ -13,6 +13,7 @@ import marketplaceRouter from './services/ACoolAPI_Marketplace.js';
 import cardShowRouter from './services/ACoolAPI_CardShow.js';
 import discoveryRouter from './services/ACoolAPI_Discovery.js';
 import metadataRouter from './services/ACoolAPI_Metadata.js';
+import googleRouter from './services/ACoolAPI_Google.js';
 import stitchRouter from './services/ACoolAPI_Stitch.js';
 
 dotenv.config();
@@ -64,7 +65,7 @@ app.get('/health', (_request, response) => {
     integrations: {
       sports_cards_pro_configured: Boolean(process.env.SPORTSCARDSPRO_API_TOKEN),
       supabase_configured: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY),
-      vision_configured: Boolean(process.env.GEMINI_API_KEY),
+      vision_configured: Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_VISION_MODEL),
       quickbooks_configured: Boolean(process.env.INTUIT_CLIENT_ID && process.env.INTUIT_CLIENT_SECRET),
       google_maps_configured: Boolean(process.env.GOOGLE_MAPS_SERVER_API_KEY || process.env.GOOGLE_MAPS_BROWSER_API_KEY),
       google_people_configured: Boolean(process.env.GOOGLE_OAUTH_CLIENT_ID && process.env.GOOGLE_OAUTH_CLIENT_SECRET),
@@ -85,6 +86,7 @@ app.use('/api/v1/marketplace', marketplaceRouter);
 app.use('/api/v1/card-show', cardShowRouter);
 app.use('/api/v1/discovery', discoveryRouter);
 app.use('/api/v1/metadata', metadataRouter);
+app.use('/api/v1/google', googleRouter);
 app.use('/api/v1/stitch', stitchRouter);
 
 app.get('/api/v1/inventory', (_request, response) => {
