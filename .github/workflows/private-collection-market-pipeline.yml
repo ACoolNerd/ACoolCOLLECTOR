@@ -37,7 +37,7 @@ jobs:
             exit 1
           fi
 
-      - name: Reject obvious SportsCardsPro credentials
+      - name: Reject obvious provider credentials
         shell: bash
         run: |
           set -euo pipefail
@@ -46,11 +46,11 @@ jobs:
             --exclude='*.md' \
             --exclude='.env.example' \
             --exclude='package-lock.json' \
-            '(SPORTSCARDSPRO_API_(TOKEN|KEY)[[:space:]]*=[[:space:]]*[a-fA-F0-9]{40}|[?&]t=[a-fA-F0-9]{40})' \
+            '(SPORTSCARDSPRO_API_(TOKEN|KEY)[[:space:]]*=[[:space:]]*[a-fA-F0-9]{40}|[?&]t=[a-fA-F0-9]{40}|AIza[0-9A-Za-z_-]{35}|GEMINI_API_KEY[[:space:]]*=[[:space:]]*[^[:space:]]+|GOOGLE_MAPS_[A-Z_]*API_KEY[[:space:]]*=[[:space:]]*[^[:space:]]+|INTUIT_CLIENT_SECRET[[:space:]]*=[[:space:]]*[^[:space:]]+|SUPABASE_SERVICE_ROLE_KEY[[:space:]]*=[[:space:]]*[^[:space:]]+|STRIPE_SECRET_KEY[[:space:]]*=[[:space:]]*[^[:space:]]+)' \
             . || true)"
           if [[ -n "$matches" ]]; then
-            echo "Potential SportsCardsPro credential committed:"
-            echo "$matches" | sed -E 's/[a-fA-F0-9]{40}/[REDACTED]/g'
+            echo "Potential provider credential committed:"
+            echo "$matches" | sed -E 's/[a-fA-F0-9]{40}/[REDACTED]/g; s/AIza[0-9A-Za-z_-]{35}/[REDACTED]/g'
             exit 1
           fi
 
@@ -58,9 +58,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          prohibited="$(git ls-files | grep -E '(private/images|ACoolCOLLECTION_100_Item_Drive_Manifest\.(json|csv)|listing_candidates\.(json|csv)|earnings_scenario\.json|provider_sync_results\.json)' || true)"
+          prohibited="$(git ls-files | grep -E '(private/images|ACoolCOLLECTION_100_Item_Drive_Manifest\.(json|csv)|listing_candidates\.(json|csv)|earnings_scenario\.json|provider_sync_results\.json|oauth_tokens|signed_urls|private_contacts)' || true)"
           if [[ -n "$prohibited" ]]; then
-            echo "Private collection artifact is tracked:"
+            echo "Private collection or credential artifact is tracked:"
             echo "$prohibited"
             exit 1
           fi
@@ -96,3 +96,46 @@ jobs:
         run: npm ci
       - name: TypeScript build and tests
         run: npm test
+
+  ai-studio-and-metadata-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate JSON and XML files
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m json.tool google-ai-studio/02_CONTEXT_MANIFEST.json >/dev/null
+          python -m json.tool google-ai-studio/03_FUNCTION_DECLARATIONS.json >/dev/null
+          python -m json.tool google-ai-studio/04_STRUCTURED_OUTPUT_SCHEMAS.json >/dev/null
+          python -m json.tool web/seo/manifest.webmanifest >/dev/null
+          python - <<'PY'
+          import xml.etree.ElementTree as ET
+          ET.parse('web/seo/sitemap-index.xml')
+          PY
+      - name: Verify required Open Graph and discovery tags
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=web/seo/head-template.html
+          for required in 'og:title' 'og:type' 'og:image' 'og:url' 'og:image:alt' 'rel="canonical"' 'application/ld+json' 'twitter:card'; do
+            grep -q "$required" "$file" || { echo "Missing metadata token: $required"; exit 1; }
+          done
+          grep -q '^Sitemap: https://acoolcollector.com/sitemap-index.xml$' web/seo/robots.txt
+      - name: Verify Google AI Studio package is complete
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in \
+            google-ai-studio/00_SYSTEM_INSTRUCTIONS.md \
+            google-ai-studio/01_MASTER_BUILD_PROMPT.md \
+            google-ai-studio/02_CONTEXT_MANIFEST.json \
+            google-ai-studio/03_FUNCTION_DECLARATIONS.json \
+            google-ai-studio/04_STRUCTURED_OUTPUT_SCHEMAS.json \
+            google-ai-studio/05_EVALUATION_SUITE.md \
+            google-ai-studio/06_DEPLOYMENT_CHECKLIST.md; do
+            test -s "$file" || { echo "Missing or empty AI Studio file: $file"; exit 1; }
+          done
