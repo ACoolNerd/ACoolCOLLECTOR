@@ -33,9 +33,13 @@ jobs:
       GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
       GCP_REGION: ${{ vars.GCP_REGION || 'us-central1' }}
       PUBLIC_SITE_URL: ${{ vars.PUBLIC_SITE_URL }}
-      ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS }}
       TERRAFORM_DIR: infra/google-cloud/terraform
       IMAGE_NAME: acoolcollector-api
+      TF_VAR_environment: ${{ inputs.environment }}
+      TF_VAR_allowed_origins: ${{ vars.ALLOWED_ORIGINS_JSON || '[]' }}
+      TF_VAR_alert_email: ${{ vars.ALERT_EMAIL }}
+      TF_VAR_billing_account_id: ${{ vars.GCP_BILLING_ACCOUNT_ID }}
+      TF_VAR_monthly_budget_usd: ${{ vars.MONTHLY_BUDGET_USD || '250' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -59,6 +63,12 @@ jobs:
           test -n "${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}"
           test -n "${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}"
           [[ "$PUBLIC_SITE_URL" == https://* ]]
+          python - <<'PY'
+          import json, os
+          value = json.loads(os.environ['TF_VAR_allowed_origins'])
+          assert isinstance(value, list)
+          assert all(isinstance(item, str) and item.startswith('https://') for item in value)
+          PY
 
       - name: Configure Artifact Registry authentication
         run: gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
@@ -95,8 +105,7 @@ jobs:
             -var="project_id=${GCP_PROJECT_ID}" \
             -var="region=${GCP_REGION}" \
             -var="container_image=${{ steps.image.outputs.immutable_image }}" \
-            -var="public_site_url=${PUBLIC_SITE_URL}" \
-            -var='allowed_origins=${{ toJSON(vars.ALLOWED_ORIGINS_LIST) }}'
+            -var="public_site_url=${PUBLIC_SITE_URL}"
           terraform show -json tfplan > tfplan.json
           digest="$(sha256sum tfplan.json | awk '{print $1}')"
           echo "terraform_plan_digest=$digest" >> "$GITHUB_OUTPUT"
@@ -144,4 +153,6 @@ jobs:
             echo "- Terraform plan digest: ${{ steps.plan.outputs.terraform_plan_digest }}"
             echo "- Applied: ${{ inputs.apply }}"
             echo "- Service URL: ${{ steps.health.outputs.service_url }}"
+            echo "- Monitoring notification configured: ${{ vars.ALERT_EMAIL != '' }}"
+            echo "- Budget configured: ${{ vars.GCP_BILLING_ACCOUNT_ID != '' }}"
           } >> "$GITHUB_STEP_SUMMARY"
