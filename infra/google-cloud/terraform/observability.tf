@@ -126,7 +126,7 @@ resource "google_billing_budget" "monthly" {
   }
 
   all_updates_rule {
-    disable_default_iam_recipients     = false
+    disable_default_iam_recipients   = false
     monitoring_notification_channels = google_monitoring_notification_channel.email[*].name
   }
 }
