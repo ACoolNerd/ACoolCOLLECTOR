@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { ingestMasterInventory } from './utils/ACoolDATA_Ingestion.js';
 import { lookupPrice, searchProducts } from './services/ACoolAPI_Pricing.js';
+import { requireAuth } from './middleware/ACoolIAM.js';
 import authRouter from './services/ACoolAPI_Auth.js';
 import referralRouter from './services/ACoolAPI_Referral.js';
 import visionRouter from './services/ACoolAPI_Vision.js';
@@ -17,6 +18,8 @@ import discoveryRouter from './services/ACoolAPI_Discovery.js';
 import metadataRouter from './services/ACoolAPI_Metadata.js';
 import googleRouter from './services/ACoolAPI_Google.js';
 import stitchRouter from './services/ACoolAPI_Stitch.js';
+import quickBooksRouter from './services/ACoolAPI_QuickBooks.js';
+import integrationsRouter from './services/ACoolAPI_Integrations.js';
 
 dotenv.config();
 
@@ -40,7 +43,12 @@ app.use(cors({
   },
   credentials: true,
 }));
-app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '12mb' }));
+app.use(express.json({
+  limit: process.env.JSON_BODY_LIMIT || '12mb',
+  verify(request, _response, buffer) {
+    (request as express.Request & { rawBody?: Buffer }).rawBody = Buffer.from(buffer);
+  },
+}));
 
 const INVENTORY_PATH = process.env.ACOOL_INVENTORY_PATH
   || path.join(__dirname, '../../../data/processed/ACoolINVENTORY_Master.csv');
@@ -67,13 +75,15 @@ app.get('/health', (_request, response) => {
     integrations: {
       sports_cards_pro_configured: Boolean(process.env.SPORTSCARDSPRO_API_TOKEN),
       supabase_configured: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY),
+      supabase_admin_configured: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY),
       gemini_vision_configured: Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_VISION_MODEL),
       google_cloud_vision_configured: Boolean(process.env.GOOGLE_CLOUD_PROJECT_ID),
       google_cloud_tts_configured: Boolean(process.env.GOOGLE_CLOUD_PROJECT_ID),
-      quickbooks_configured: Boolean(process.env.INTUIT_CLIENT_ID && process.env.INTUIT_CLIENT_SECRET),
+      quickbooks_configured: Boolean(process.env.INTUIT_CLIENT_ID && process.env.INTUIT_CLIENT_SECRET && process.env.INTUIT_REDIRECT_URI),
       google_maps_configured: Boolean(process.env.GOOGLE_MAPS_SERVER_API_KEY || process.env.GOOGLE_MAPS_BROWSER_API_KEY),
       google_people_configured: Boolean(process.env.GOOGLE_OAUTH_CLIENT_ID && process.env.GOOGLE_OAUTH_CLIENT_SECRET),
       public_metadata_configured: Boolean(process.env.PUBLIC_SITE_URL?.startsWith('https://')),
+      issue_8_activation_evidence: 'schema_api_and_scorecard_foundation',
       card_show_vendor_intelligence: 'schema_and_api_foundation',
       discovery_events_promotions_recommendations: 'schema_api_and_test_foundation',
       direct_event_ticket_purchase: 'disabled_external_checkout_only',
@@ -94,12 +104,14 @@ app.use('/api/v1/discovery', discoveryRouter);
 app.use('/api/v1/metadata', metadataRouter);
 app.use('/api/v1/google', googleRouter);
 app.use('/api/v1/stitch', stitchRouter);
+app.use('/api/v1/quickbooks', quickBooksRouter);
+app.use('/api/v1/integrations', integrationsRouter);
 
-app.get('/api/v1/inventory', (_request, response) => {
+app.get('/api/v1/inventory', requireAuth, (_request, response) => {
   response.json({
     count: inventory.length,
     assets: inventory.slice(0, 100),
-    privacy_notice: 'This development endpoint must be protected or removed before production.',
+    privacy_notice: 'Authenticated development view. Production must enforce organization-scoped inventory access.',
   });
 });
 
