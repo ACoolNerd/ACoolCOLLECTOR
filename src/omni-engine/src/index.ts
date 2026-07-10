@@ -11,6 +11,7 @@ import referralRouter from './services/ACoolAPI_Referral.js';
 import visionRouter from './services/ACoolAPI_Vision.js';
 import marketplaceRouter from './services/ACoolAPI_Marketplace.js';
 import cardShowRouter from './services/ACoolAPI_CardShow.js';
+import discoveryRouter from './services/ACoolAPI_Discovery.js';
 import stitchRouter from './services/ACoolAPI_Stitch.js';
 
 dotenv.config();
@@ -64,6 +65,9 @@ app.get('/health', (_request, response) => {
       supabase_configured: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY),
       vision_configured: Boolean(process.env.GEMINI_API_KEY),
       card_show_vendor_intelligence: 'schema_and_api_foundation',
+      discovery_events_promotions_recommendations: 'schema_api_and_test_foundation',
+      direct_event_ticket_purchase: 'disabled_external_checkout_only',
+      public_promotions: 'disabled_until_legal_and_rules_approval',
     },
   });
 });
@@ -73,6 +77,7 @@ app.use('/api/v1/referrals', referralRouter);
 app.use('/api/v1/vision', visionRouter);
 app.use('/api/v1/marketplace', marketplaceRouter);
 app.use('/api/v1/card-show', cardShowRouter);
+app.use('/api/v1/discovery', discoveryRouter);
 app.use('/api/v1/stitch', stitchRouter);
 
 app.get('/api/v1/inventory', (_request, response) => {
