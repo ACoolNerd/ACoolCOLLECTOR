@@ -3,14 +3,35 @@ set -euo pipefail
 
 PROJECT_ID="${PROJECT_ID:-acoolcollector}"
 EVIDENCE_DIR="${EVIDENCE_DIR:-${HOME}/acoolcollector-evidence/$(date -u +%Y%m%dT%H%M%SZ)-maps-ai}"
+ENABLE_STREET_VIEW_PUBLISH="${ENABLE_STREET_VIEW_PUBLISH:-NO}"
 mkdir -p "${EVIDENCE_DIR}"
+
+# Cloud Shell can emit a Regional Access Boundary/Gaia warning and return a
+# non-zero status even when a read-only gcloud command produced usable output.
+# This helper accepts that one known warning only when stdout is non-empty.
+capture_gcloud_read() {
+  local stdout_file="$1"
+  local stderr_file="$2"
+  shift 2
+
+  local status=0
+  "$@" >"${stdout_file}" 2>"${stderr_file}" || status=$?
+
+  if [[ "${status}" -ne 0 ]]; then
+    if [[ -s "${stdout_file}" ]] && grep -q 'Regional Access Boundary HTTP request failed after retries' "${stderr_file}"; then
+      echo "WARNING: accepted non-fatal Cloud Shell Regional Access Boundary read warning." >&2
+    else
+      cat "${stderr_file}" >&2 || true
+      return "${status}"
+    fi
+  fi
+}
 
 gcloud config set project "${PROJECT_ID}" --quiet
 gcloud auth print-access-token >/dev/null
 
-# Contextually relevant APIs. The script enables only names exposed as available
-# to this project. This avoids breaking activation when Google renames, restricts,
-# or does not expose an optional service in a region/account.
+# Contextually relevant APIs. The script attempts only names exposed as
+# available to this project, and verifies the final enabled inventory.
 CANDIDATE_APIS=(
   places.googleapis.com
   routes.googleapis.com
@@ -21,7 +42,6 @@ CANDIDATE_APIS=(
   roads.googleapis.com
   routeoptimization.googleapis.com
   street-view-image-backend.googleapis.com
-  streetviewpublish.googleapis.com
   maps-android-backend.googleapis.com
   maps-ios-backend.googleapis.com
   maps-backend.googleapis.com
@@ -41,37 +61,84 @@ CANDIDATE_APIS=(
   vision.googleapis.com
 )
 
+# Publishing user-generated 360 imagery is rights-gated and stays disabled
+# unless explicitly authorized for this run.
+RIGHTS_GATED_APIS=(
+  streetviewpublish.googleapis.com
+)
+
 AVAILABLE_FILE="${EVIDENCE_DIR}/available-services.txt"
+AVAILABLE_ERR="${EVIDENCE_DIR}/available-services.stderr.txt"
+ALL_ENABLED_FILE="${EVIDENCE_DIR}/all-enabled-services.txt"
+ALL_ENABLED_ERR="${EVIDENCE_DIR}/all-enabled-services.stderr.txt"
 ENABLED_FILE="${EVIDENCE_DIR}/enabled-maps-ai-services.txt"
 SKIPPED_FILE="${EVIDENCE_DIR}/unavailable-or-unapproved-services.txt"
+ATTEMPT_LOG="${EVIDENCE_DIR}/api-enable-attempts.txt"
 
-gcloud services list --available \
-  --project="${PROJECT_ID}" \
-  --format='value(config.name)' \
-  | sort > "${AVAILABLE_FILE}"
+capture_gcloud_read \
+  "${AVAILABLE_FILE}" \
+  "${AVAILABLE_ERR}" \
+  gcloud services list --available \
+    --project="${PROJECT_ID}" \
+    --format='value(config.name)'
+
+sort -u -o "${AVAILABLE_FILE}" "${AVAILABLE_FILE}"
+test -s "${AVAILABLE_FILE}"
 
 : > "${ENABLED_FILE}"
 : > "${SKIPPED_FILE}"
+: > "${ATTEMPT_LOG}"
 
-for api in "${CANDIDATE_APIS[@]}"; do
-  if grep -Fxq "${api}" "${AVAILABLE_FILE}"; then
-    echo "Enabling ${api}"
-    gcloud services enable "${api}" --project="${PROJECT_ID}" --quiet
-    echo "${api}" >> "${ENABLED_FILE}"
-  else
+APIS_TO_PROCESS=("${CANDIDATE_APIS[@]}")
+if [[ "${ENABLE_STREET_VIEW_PUBLISH}" == "YES" ]]; then
+  APIS_TO_PROCESS+=("${RIGHTS_GATED_APIS[@]}")
+else
+  printf '%s\n' "${RIGHTS_GATED_APIS[@]}" >> "${SKIPPED_FILE}"
+  echo "SKIP rights-gated unless ENABLE_STREET_VIEW_PUBLISH=YES: streetviewpublish.googleapis.com"
+fi
+
+for api in "${APIS_TO_PROCESS[@]}"; do
+  if ! grep -Fxq "${api}" "${AVAILABLE_FILE}"; then
     echo "SKIP unavailable or not exposed: ${api}"
+    echo "${api}" >> "${SKIPPED_FILE}"
+    continue
+  fi
+
+  echo "Enabling ${api}"
+  status=0
+  gcloud services enable "${api}" \
+    --project="${PROJECT_ID}" \
+    --quiet \
+    >"${EVIDENCE_DIR}/enable-${api}.stdout.txt" \
+    2>"${EVIDENCE_DIR}/enable-${api}.stderr.txt" || status=$?
+
+  printf '%s status=%s\n' "${api}" "${status}" >> "${ATTEMPT_LOG}"
+done
+
+capture_gcloud_read \
+  "${ALL_ENABLED_FILE}" \
+  "${ALL_ENABLED_ERR}" \
+  gcloud services list --enabled \
+    --project="${PROJECT_ID}" \
+    --format='value(config.name)'
+
+sort -u -o "${ALL_ENABLED_FILE}" "${ALL_ENABLED_FILE}"
+test -s "${ALL_ENABLED_FILE}"
+
+for api in "${APIS_TO_PROCESS[@]}"; do
+  if grep -Fxq "${api}" "${ALL_ENABLED_FILE}"; then
+    echo "${api}" >> "${ENABLED_FILE}"
+  elif ! grep -Fxq "${api}" "${SKIPPED_FILE}"; then
     echo "${api}" >> "${SKIPPED_FILE}"
   fi
 done
 
-gcloud services list --enabled \
-  --project="${PROJECT_ID}" \
-  --format='value(config.name)' \
-  | sort > "${EVIDENCE_DIR}/all-enabled-services.txt"
+sort -u -o "${ENABLED_FILE}" "${ENABLED_FILE}"
+sort -u -o "${SKIPPED_FILE}" "${SKIPPED_FILE}"
 
 FAILURES=0
 for api in places.googleapis.com routes.googleapis.com addressvalidation.googleapis.com vision.googleapis.com texttospeech.googleapis.com; do
-  if grep -Fxq "${api}" "${EVIDENCE_DIR}/all-enabled-services.txt"; then
+  if grep -Fxq "${api}" "${ALL_ENABLED_FILE}"; then
     echo "PASS: ${api}"
   else
     echo "FAIL: ${api}"
