@@ -22,6 +22,8 @@
     "docs/ACoolQUICKBOOKS_AFFILIATE_ACCOUNTING.md",
     "docs/ACoolSEO_SCHEMA_SOCIAL_IMPLEMENTATION.md",
     "data/verified_sources/collecting_ecosystem_registry.json",
+    "data/verified_sources/major_events_2026.json",
+    "data/verified_sources/grading_service_levels_2026.json",
     "integrations/sportscardspro_pipeline/LISTING_AND_PRICING_PROTOCOL.md",
     "supabase/migrations/20260710_iam_referral_marketplace.sql",
     "supabase/migrations/20260710_card_show_vendor_intelligence.sql",
@@ -29,7 +31,9 @@
     "supabase/migrations/20260710_discovery_events_promotions_recommendations.sql",
     "supabase/migrations/20260710_google_cloud_seo_affiliates_qbo.sql",
     "supabase/migrations/20260710_collecting_ecosystem_integrations.sql",
-    "infra/google-cloud/terraform/main.tf"
+    "supabase/migrations/20260710_major_events_grading_services.sql",
+    "infra/google-cloud/terraform/main.tf",
+    "src/omni-engine/Dockerfile"
   ],
   "runtime_components": [
     "src/omni-engine/src/index.ts",
@@ -50,6 +54,7 @@
     "src/omni-engine/src/services/ACoolAPI_Vision.ts",
     "src/omni-engine/src/services/ACoolAPI_CloudVision.ts",
     "src/omni-engine/src/services/ACoolAPI_Speech.ts",
+    "src/omni-engine/src/services/ACoolGoogleAccessToken.ts",
     "src/omni-engine/src/services/ACoolQuickBooks.ts"
   ],
   "domains": [
@@ -91,7 +96,7 @@
     { "key": "google_people_and_calendar", "status": "opt_in_architecture", "boundary": "user consent and minimum scopes required" },
     { "key": "quickbooks_online", "status": "schema_utilities_and_production_protocol", "boundary": "OAuth sandbox merchant and accounting approval required" },
     { "key": "affiliate_programs", "status": "registry_and_governance_foundation", "boundary": "no affiliation claim before written approval" },
-    { "key": "major_events_retailers_graders", "status": "source_and_integration_registry", "boundary": "not affiliated unless approved in writing" }
+    { "key": "major_events_retailers_graders", "status": "verified_source_and_integration_registry", "boundary": "not affiliated unless approved in writing" }
   ],
   "non_negotiable_defaults": {
     "private_collection": true,
