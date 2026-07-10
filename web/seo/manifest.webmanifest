@@ -1,0 +1,11 @@
+{
+  "name": "ACoolCOLLECTOR",
+  "short_name": "ACool",
+  "description": "The ACoolCOLLECTOR application.",
+  "start_url": "/app/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0D0D0F",
+  "theme_color": "#E8520F",
+  "icons": []
+}
