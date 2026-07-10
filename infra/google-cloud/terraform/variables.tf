@@ -86,7 +86,24 @@ variable "github_branch" {
 }
 
 variable "alert_email" {
-  description = "Optional email address for monitoring notifications."
+  description = "Optional email address for Cloud Monitoring notifications."
   type        = string
   default     = ""
+}
+
+variable "billing_account_id" {
+  description = "Optional Google Cloud billing account ID used to create an environment budget."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "monthly_budget_usd" {
+  description = "Monthly environment budget in whole US dollars."
+  type        = number
+  default     = 250
+  validation {
+    condition     = var.monthly_budget_usd > 0
+    error_message = "monthly_budget_usd must be greater than zero."
+  }
 }
