@@ -72,7 +72,7 @@ resource "google_iam_workload_identity_pool_provider" "github" {
     "attribute.ref"              = "assertion.ref"
     "attribute.repository_owner" = "assertion.repository_owner"
   }
-  attribute_condition = "assertion.repository == '${var.github_repository}'"
+  attribute_condition = "assertion.repository == '${var.github_repository}' && assertion.ref == 'refs/heads/${var.github_branch}'"
   oidc {
     issuer_uri = "https://token.actions.githubusercontent.com"
   }
