@@ -30,7 +30,7 @@ Bootstrap was not authorized.
 
 Review the Terraform plan first, then rerun with:
 
-  ACCEPT_BOOTSTRAP=YES ./scripts/google-cloud/bootstrap-and-deploy-development.sh
+  ACCEPT_BOOTSTRAP=YES bash scripts/google-cloud/bootstrap-and-deploy-development.sh
 
 To authorize the final full development apply in the same run, also set:
 
@@ -48,7 +48,20 @@ if ! command -v terraform >/dev/null 2>&1; then
   exit 1
 fi
 
-"${ROOT_DIR}/scripts/google-cloud/activate-and-plan-development.sh"
+PROJECT_ID="${PROJECT_ID}" \
+REGION="${REGION}" \
+ENVIRONMENT="${ENVIRONMENT}" \
+PUBLIC_SITE_URL="${PUBLIC_SITE_URL}" \
+ALLOWED_ORIGINS_JSON="${ALLOWED_ORIGINS_JSON}" \
+ALERT_EMAIL="${ALERT_EMAIL}" \
+MONTHLY_BUDGET_USD="${MONTHLY_BUDGET_USD}" \
+ENABLE_GITHUB_OIDC="${ENABLE_GITHUB_OIDC}" \
+GITHUB_REPOSITORY="${GITHUB_REPOSITORY}" \
+GITHUB_BRANCH="${GITHUB_BRANCH}" \
+TF_STATE_BUCKET="${TF_STATE_BUCKET}" \
+TF_STATE_PREFIX="${TF_STATE_PREFIX}" \
+EVIDENCE_DIR="${EVIDENCE_DIR}/preflight" \
+bash "${ROOT_DIR}/scripts/google-cloud/activate-and-plan-development.sh"
 
 BILLING_ACCOUNT_ID="$(gcloud billing projects describe "${PROJECT_ID}" --format='value(billingAccountName)' | sed 's#^billingAccounts/##')"
 
