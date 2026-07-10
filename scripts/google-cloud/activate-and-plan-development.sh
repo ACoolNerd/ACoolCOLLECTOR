@@ -12,6 +12,8 @@ MONTHLY_BUDGET_USD="${MONTHLY_BUDGET_USD:-250}"
 ENABLE_GITHUB_OIDC="${ENABLE_GITHUB_OIDC:-false}"
 GITHUB_REPOSITORY="${GITHUB_REPOSITORY:-ACoolNerd/ACoolCOLLECTOR}"
 GITHUB_BRANCH="${GITHUB_BRANCH:-main}"
+TF_STATE_BUCKET="${TF_STATE_BUCKET:-${PROJECT_ID}-terraform-state}"
+TF_STATE_PREFIX="${TF_STATE_PREFIX:-acoolcollector/${ENVIRONMENT}}"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 TF_DIR="${ROOT_DIR}/infra/google-cloud/terraform"
@@ -23,6 +25,7 @@ echo "=== ACoolCOLLECTOR DEVELOPMENT ACTIVATION ==="
 echo "Project: ${PROJECT_ID}"
 echo "Region: ${REGION}"
 echo "Environment: ${ENVIRONMENT}"
+echo "State bucket: ${TF_STATE_BUCKET}"
 echo "Evidence: ${EVIDENCE_DIR}"
 
 gcloud config set project "${PROJECT_ID}" --quiet
@@ -101,6 +104,26 @@ if [[ "${FAILURES}" -ne 0 ]]; then
   exit 1
 fi
 
+if ! gcloud storage buckets describe "gs://${TF_STATE_BUCKET}" \
+  --project="${PROJECT_ID}" >/dev/null 2>&1; then
+  echo "=== CREATING TERRAFORM STATE BUCKET ==="
+  gcloud storage buckets create "gs://${TF_STATE_BUCKET}" \
+    --project="${PROJECT_ID}" \
+    --location="${REGION}" \
+    --uniform-bucket-level-access \
+    --public-access-prevention \
+    --soft-delete-duration=7d
+fi
+
+gcloud storage buckets update "gs://${TF_STATE_BUCKET}" \
+  --project="${PROJECT_ID}" \
+  --versioning
+
+gcloud storage buckets describe "gs://${TF_STATE_BUCKET}" \
+  --project="${PROJECT_ID}" \
+  --format="yaml(name,location,uniformBucketLevelAccess,publicAccessPrevention,versioning)" \
+  | tee "${EVIDENCE_DIR}/terraform-state-bucket.yaml"
+
 if ! command -v terraform >/dev/null 2>&1; then
   echo "Terraform is not installed or is not on PATH."
   exit 1
@@ -109,7 +132,10 @@ fi
 terraform version | tee "${EVIDENCE_DIR}/terraform-version.txt"
 
 cd "${TF_DIR}"
-terraform init -backend=false
+terraform init \
+  -reconfigure \
+  -backend-config="bucket=${TF_STATE_BUCKET}" \
+  -backend-config="prefix=${TF_STATE_PREFIX}"
 terraform fmt -check -recursive
 terraform validate | tee "${EVIDENCE_DIR}/terraform-validate.txt"
 
@@ -167,5 +193,6 @@ grep -E 'Plan:|No changes|Error:|Warning:' \
 
 echo
 echo "REVIEW-ONLY TERRAFORM PLAN COMPLETE"
-echo "No resources were applied."
+echo "No application resources were applied."
+echo "Terraform state bucket is active and versioned."
 echo "Evidence directory: ${EVIDENCE_DIR}"
