@@ -80,7 +80,7 @@ jobs:
       - name: Test
         run: python -m unittest -v test_pipeline.py
 
-  omni-engine-build:
+  omni-engine-tests:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -94,5 +94,5 @@ jobs:
           cache-dependency-path: src/omni-engine/package-lock.json
       - name: Install locked dependencies
         run: npm ci
-      - name: TypeScript build
-        run: npm run build
+      - name: TypeScript build and tests
+        run: npm test
