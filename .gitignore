@@ -1,0 +1,57 @@
+# Local environments and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node and web
+node_modules/
+.next/
+dist/
+build/
+coverage/
+
+# IDE and OS
+.DS_Store
+.idea/
+.vscode/
+
+# Private ACoolCOLLECTOR collection evidence
+**/private/
+private/
+data/private/
+data/source/private/
+**/ACoolCOLLECTION_100_Item_Drive_Manifest.json
+**/ACoolCOLLECTION_100_Item_Drive_Manifest.csv
+**/ACoolINVENTORY_Private*
+**/listing_candidates.json
+**/listing_candidates.csv
+**/earnings_scenario.json
+**/provider_sync_results.json
+**/provider_cache/
+
+# Card evidence and financial records
+**/receipts/
+**/ownership_evidence/
+**/certification_evidence/
+**/custody_evidence/
+**/insurance_evidence/
+**/card_images_private/
+
+# Local logs and temporary files
+*.log
+tmp/
+temp/
+.cache/
