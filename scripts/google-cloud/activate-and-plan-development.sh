@@ -42,6 +42,34 @@ capture_gcloud_read() {
   fi
 }
 
+# Retrieve a short-lived access token without persisting the token to disk.
+# The known Cloud Shell warning is accepted only when a plausible token exists.
+get_gcloud_access_token() {
+  local token_file stderr_file status token
+  token_file="$(mktemp)"
+  stderr_file="$(mktemp)"
+  status=0
+
+  gcloud auth print-access-token >"${token_file}" 2>"${stderr_file}" || status=$?
+  token="$(tr -d '\r\n' <"${token_file}")"
+
+  if [[ -z "${token}" || "${#token}" -lt 20 ]]; then
+    cat "${stderr_file}" >&2 || true
+    rm -f "${token_file}" "${stderr_file}"
+    echo "Unable to obtain a usable short-lived Google Cloud access token." >&2
+    return 1
+  fi
+
+  if [[ "${status}" -ne 0 ]] && ! grep -q 'Regional Access Boundary HTTP request failed after retries' "${stderr_file}"; then
+    cat "${stderr_file}" >&2 || true
+    rm -f "${token_file}" "${stderr_file}"
+    return "${status}"
+  fi
+
+  rm -f "${token_file}" "${stderr_file}"
+  printf '%s' "${token}"
+}
+
 echo "=== ACoolCOLLECTOR DEVELOPMENT ACTIVATION ==="
 echo "Project: ${PROJECT_ID}"
 echo "Region: ${REGION}"
@@ -50,7 +78,9 @@ echo "State bucket: ${TF_STATE_BUCKET}"
 echo "Evidence: ${EVIDENCE_DIR}"
 
 gcloud config set project "${PROJECT_ID}" --quiet
-gcloud auth print-access-token >/dev/null
+ACCESS_TOKEN="$(get_gcloud_access_token)"
+printf 'verified=true\ntoken_length=%s\n' "${#ACCESS_TOKEN}" > "${EVIDENCE_DIR}/access-token-verification.txt"
+unset ACCESS_TOKEN
 
 capture_gcloud_read \
   "${EVIDENCE_DIR}/project.yaml" \
@@ -184,7 +214,7 @@ if [[ -z "${BILLING_ACCOUNT_ID}" ]]; then
   exit 1
 fi
 
-export GOOGLE_OAUTH_ACCESS_TOKEN="$(gcloud auth print-access-token)"
+export GOOGLE_OAUTH_ACCESS_TOKEN="$(get_gcloud_access_token)"
 trap 'unset GOOGLE_OAUTH_ACCESS_TOKEN' EXIT
 
 PLAN_ARGS=(
