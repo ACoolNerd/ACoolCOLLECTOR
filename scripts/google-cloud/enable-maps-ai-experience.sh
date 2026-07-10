@@ -8,7 +8,7 @@ mkdir -p "${EVIDENCE_DIR}"
 
 # Cloud Shell can emit a Regional Access Boundary/Gaia warning and return a
 # non-zero status even when a read-only gcloud command produced usable output.
-# This helper accepts that one known warning only when stdout is non-empty.
+# Accept that one known warning only when stdout is non-empty.
 capture_gcloud_read() {
   local stdout_file="$1"
   local stderr_file="$2"
@@ -27,39 +27,20 @@ capture_gcloud_read() {
   fi
 }
 
-# Retrieve a short-lived access token without ever writing it to the evidence
-# directory. Accept the same known Cloud Shell warning only when a plausible
-# non-empty token was still returned.
-get_gcloud_access_token() {
-  local token_file stderr_file status token
-  token_file="$(mktemp)"
-  stderr_file="$(mktemp)"
-  status=0
+gcloud config set project "${PROJECT_ID}" --quiet || true
 
-  gcloud auth print-access-token >"${token_file}" 2>"${stderr_file}" || status=$?
-  token="$(tr -d '\r\n' <"${token_file}")"
+# Maps API activation does not require a raw access token in this script.
+# Verify the active gcloud identity without persisting any credentials.
+capture_gcloud_read \
+  "${EVIDENCE_DIR}/active-account.txt" \
+  "${EVIDENCE_DIR}/active-account.stderr.txt" \
+  gcloud auth list \
+    --filter=status:ACTIVE \
+    --format='value(account)'
 
-  if [[ -z "${token}" || "${#token}" -lt 20 ]]; then
-    cat "${stderr_file}" >&2 || true
-    rm -f "${token_file}" "${stderr_file}"
-    echo "Unable to obtain a usable short-lived Google Cloud access token." >&2
-    return 1
-  fi
-
-  if [[ "${status}" -ne 0 ]] && ! grep -q 'Regional Access Boundary HTTP request failed after retries' "${stderr_file}"; then
-    cat "${stderr_file}" >&2 || true
-    rm -f "${token_file}" "${stderr_file}"
-    return "${status}"
-  fi
-
-  rm -f "${token_file}" "${stderr_file}"
-  printf '%s' "${token}"
-}
-
-gcloud config set project "${PROJECT_ID}" --quiet
-ACCESS_TOKEN="$(get_gcloud_access_token)"
-printf 'verified=true\ntoken_length=%s\n' "${#ACCESS_TOKEN}" > "${EVIDENCE_DIR}/access-token-verification.txt"
-unset ACCESS_TOKEN
+test -s "${EVIDENCE_DIR}/active-account.txt"
+printf 'verified=true\naccount=%s\n' "$(head -1 "${EVIDENCE_DIR}/active-account.txt")" \
+  > "${EVIDENCE_DIR}/identity-verification.txt"
 
 # Contextually relevant APIs. The script attempts only names exposed as
 # available to this project, and verifies the final enabled inventory.
