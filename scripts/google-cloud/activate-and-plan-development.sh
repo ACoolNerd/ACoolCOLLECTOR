@@ -21,6 +21,27 @@ EVIDENCE_DIR="${EVIDENCE_DIR:-${HOME}/acoolcollector-evidence/$(date -u +%Y%m%dT
 
 mkdir -p "${EVIDENCE_DIR}"
 
+# Accept the known Cloud Shell Regional Access Boundary/Gaia warning only for
+# read-only gcloud calls that still produced non-empty stdout. Every result is
+# then validated from the captured evidence before continuing.
+capture_gcloud_read() {
+  local stdout_file="$1"
+  local stderr_file="$2"
+  shift 2
+
+  local status=0
+  "$@" >"${stdout_file}" 2>"${stderr_file}" || status=$?
+
+  if [[ "${status}" -ne 0 ]]; then
+    if [[ -s "${stdout_file}" ]] && grep -q 'Regional Access Boundary HTTP request failed after retries' "${stderr_file}"; then
+      echo "WARNING: accepted non-fatal Cloud Shell Regional Access Boundary read warning." >&2
+    else
+      cat "${stderr_file}" >&2 || true
+      return "${status}"
+    fi
+  fi
+}
+
 echo "=== ACoolCOLLECTOR DEVELOPMENT ACTIVATION ==="
 echo "Project: ${PROJECT_ID}"
 echo "Region: ${REGION}"
@@ -29,18 +50,29 @@ echo "State bucket: ${TF_STATE_BUCKET}"
 echo "Evidence: ${EVIDENCE_DIR}"
 
 gcloud config set project "${PROJECT_ID}" --quiet
-
 gcloud auth print-access-token >/dev/null
 
-gcloud projects describe "${PROJECT_ID}" \
-  --format="yaml(projectId,projectNumber,name,lifecycleState)" \
-  | tee "${EVIDENCE_DIR}/project.yaml"
+capture_gcloud_read \
+  "${EVIDENCE_DIR}/project.yaml" \
+  "${EVIDENCE_DIR}/project.stderr.txt" \
+  gcloud projects describe "${PROJECT_ID}" \
+    --format="yaml(projectId,projectNumber,name,lifecycleState)"
+cat "${EVIDENCE_DIR}/project.yaml"
 
-gcloud billing projects describe "${PROJECT_ID}" \
-  --format="yaml(projectId,billingEnabled,billingAccountName)" \
-  | tee "${EVIDENCE_DIR}/billing.yaml"
+if ! grep -q "projectId: ${PROJECT_ID}" "${EVIDENCE_DIR}/project.yaml" \
+  || ! grep -q 'lifecycleState: ACTIVE' "${EVIDENCE_DIR}/project.yaml"; then
+  echo "Project verification failed for ${PROJECT_ID}."
+  exit 1
+fi
 
-if ! grep -q "billingEnabled: true" "${EVIDENCE_DIR}/billing.yaml"; then
+capture_gcloud_read \
+  "${EVIDENCE_DIR}/billing.yaml" \
+  "${EVIDENCE_DIR}/billing.stderr.txt" \
+  gcloud billing projects describe "${PROJECT_ID}" \
+    --format="yaml(projectId,billingEnabled,billingAccountName)"
+cat "${EVIDENCE_DIR}/billing.yaml"
+
+if ! grep -q 'billingEnabled: true' "${EVIDENCE_DIR}/billing.yaml"; then
   echo "Billing is not enabled for ${PROJECT_ID}."
   exit 1
 fi
@@ -78,16 +110,23 @@ REQUIRED_APIS=(
 )
 
 echo "=== ENABLING REQUIRED APIS ==="
+ENABLE_STATUS=0
 gcloud services enable "${REQUIRED_APIS[@]}" \
   --project="${PROJECT_ID}" \
-  --quiet
+  --quiet \
+  >"${EVIDENCE_DIR}/required-api-enable.stdout.txt" \
+  2>"${EVIDENCE_DIR}/required-api-enable.stderr.txt" || ENABLE_STATUS=$?
+echo "gcloud services enable exit status: ${ENABLE_STATUS}" | tee "${EVIDENCE_DIR}/required-api-enable.status.txt"
 
-gcloud services list \
-  --enabled \
-  --project="${PROJECT_ID}" \
-  --format="value(config.name)" \
-  | sort \
-  | tee "${EVIDENCE_DIR}/enabled-services.txt"
+capture_gcloud_read \
+  "${EVIDENCE_DIR}/enabled-services.txt" \
+  "${EVIDENCE_DIR}/enabled-services.stderr.txt" \
+  gcloud services list \
+    --enabled \
+    --project="${PROJECT_ID}" \
+    --format="value(config.name)"
+sort -u -o "${EVIDENCE_DIR}/enabled-services.txt" "${EVIDENCE_DIR}/enabled-services.txt"
+test -s "${EVIDENCE_DIR}/enabled-services.txt"
 
 FAILURES=0
 for api in "${REQUIRED_APIS[@]}"; do
@@ -139,7 +178,11 @@ terraform init \
 terraform fmt -check -recursive
 terraform validate | tee "${EVIDENCE_DIR}/terraform-validate.txt"
 
-BILLING_ACCOUNT_ID="$(gcloud billing projects describe "${PROJECT_ID}" --format='value(billingAccountName)' | sed 's#^billingAccounts/##')"
+BILLING_ACCOUNT_ID="$(sed -n 's/^[[:space:]]*billingAccountName: billingAccounts\///p' "${EVIDENCE_DIR}/billing.yaml" | head -1)"
+if [[ -z "${BILLING_ACCOUNT_ID}" ]]; then
+  echo "Unable to derive billing account ID from verified billing evidence."
+  exit 1
+fi
 
 export GOOGLE_OAUTH_ACCESS_TOKEN="$(gcloud auth print-access-token)"
 trap 'unset GOOGLE_OAUTH_ACCESS_TOKEN' EXIT
