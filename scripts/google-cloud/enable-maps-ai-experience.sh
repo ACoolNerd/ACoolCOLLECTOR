@@ -27,8 +27,39 @@ capture_gcloud_read() {
   fi
 }
 
+# Retrieve a short-lived access token without ever writing it to the evidence
+# directory. Accept the same known Cloud Shell warning only when a plausible
+# non-empty token was still returned.
+get_gcloud_access_token() {
+  local token_file stderr_file status token
+  token_file="$(mktemp)"
+  stderr_file="$(mktemp)"
+  status=0
+
+  gcloud auth print-access-token >"${token_file}" 2>"${stderr_file}" || status=$?
+  token="$(tr -d '\r\n' <"${token_file}")"
+
+  if [[ -z "${token}" || "${#token}" -lt 20 ]]; then
+    cat "${stderr_file}" >&2 || true
+    rm -f "${token_file}" "${stderr_file}"
+    echo "Unable to obtain a usable short-lived Google Cloud access token." >&2
+    return 1
+  fi
+
+  if [[ "${status}" -ne 0 ]] && ! grep -q 'Regional Access Boundary HTTP request failed after retries' "${stderr_file}"; then
+    cat "${stderr_file}" >&2 || true
+    rm -f "${token_file}" "${stderr_file}"
+    return "${status}"
+  fi
+
+  rm -f "${token_file}" "${stderr_file}"
+  printf '%s' "${token}"
+}
+
 gcloud config set project "${PROJECT_ID}" --quiet
-gcloud auth print-access-token >/dev/null
+ACCESS_TOKEN="$(get_gcloud_access_token)"
+printf 'verified=true\ntoken_length=%s\n' "${#ACCESS_TOKEN}" > "${EVIDENCE_DIR}/access-token-verification.txt"
+unset ACCESS_TOKEN
 
 # Contextually relevant APIs. The script attempts only names exposed as
 # available to this project, and verifies the final enabled inventory.
