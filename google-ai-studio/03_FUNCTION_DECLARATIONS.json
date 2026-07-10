@@ -1,0 +1,195 @@
+{
+  "functionDeclarations": [
+    {
+      "name": "search_catalog",
+      "description": "Search verified collectible categories, franchises, sets, products, and checklist items. Returns source and freshness metadata.",
+      "parameters": {
+        "type": "OBJECT",
+        "properties": {
+          "query": { "type": "STRING" },
+          "category": { "type": "STRING" },
+          "franchise": { "type": "STRING" },
+          "region_code": { "type": "STRING" },
+          "language_code": { "type": "STRING" },
+          "released_after": { "type": "STRING", "description": "ISO date" },
+          "released_before": { "type": "STRING", "description": "ISO date" },
+          "limit": { "type": "INTEGER", "minimum": 1, "maximum": 50 }
+        }
+      }
+    },
+    {
+      "name": "search_events",
+      "description": "Search verified card shows and collectible events with venues, dates, organizers, ticket offers, and last verification time.",
+      "parameters": {
+        "type": "OBJECT",
+        "properties": {
+          "query": { "type": "STRING" },
+          "city": { "type": "STRING" },
+          "region": { "type": "STRING" },
+          "country_code": { "type": "STRING" },
+          "starts_after": { "type": "STRING", "description": "ISO date-time" },
+          "starts_before": { "type": "STRING", "description": "ISO date-time" },
+          "latitude": { "type": "NUMBER" },
+          "longitude": { "type": "NUMBER" },
+          "radius_km": { "type": "NUMBER" },
+          "limit": { "type": "INTEGER", "minimum": 1, "maximum": 100 }
+        }
+      }
+    },
+    {
+      "name": "get_vendor_profile",
+      "description": "Retrieve a vendor business profile, verified public contact methods, show appearances, reputation snapshot, evidence confidence, and disclosure.",
+      "parameters": {
+        "type": "OBJECT",
+        "properties": {
+          "vendor_id": { "type": "STRING" },
+          "include_reviews": { "type": "BOOLEAN" },
+          "include_show_appearances": { "type": "BOOLEAN" }
+        },
+        "required": ["vendor_id"]
+      }
+    },
+    {
+      "name": "create_card_show_capture",
+      "description": "Create a private wishlist capture tied to the authenticated collector, show session, vendor, booth, private image object, asking price, and recognition candidates. Never publishes inventory.",
+      "parameters": {
+        "type": "OBJECT",
+        "properties": {
+          "session_id": { "type": "STRING" },
+          "vendor_id": { "type": "STRING" },
+          "booth_label": { "type": "STRING" },
+          "image_object_path": { "type": "STRING" },
+          "asking_price_cents": { "type": "INTEGER", "minimum": 0 },
+          "currency": { "type": "STRING" },
+          "private_notes": { "type": "STRING" },
+          "recognition_candidates": {
+            "type": "ARRAY",
+            "items": { "type": "OBJECT" }
+          }
+        },
+        "required": ["session_id", "image_object_path"]
+      }
+    },
+    {
+      "name": "run_collection_recommendation",
+      "description": "Calculate explainable collection-completion recommendations using owned quantities, missing checklist items, budget, maximum prices, source freshness, and confidence.",
+      "parameters": {
+        "type": "OBJECT",
+        "properties": {
+          "collection_goal_id": { "type": "STRING" },
+          "budget_cents": { "type": "INTEGER", "minimum": 0 },
+          "currency": { "type": "STRING" },
+          "maximum_items": { "type": "INTEGER", "minimum": 1, "maximum": 100 },
+          "include_alternatives": { "type": "BOOLEAN" }
+        },
+        "required": ["collection_goal_id"]
+      }
+    },
+    {
+      "name": "run_deck_recommendation",
+      "description": "Calculate owned-versus-required deck recommendations with core cards, flex cards, substitutes, legality, rotation, budget, and source timestamps.",
+      "parameters": {
+        "type": "OBJECT",
+        "properties": {
+          "user_deck_goal_id": { "type": "STRING" },
+          "budget_cents": { "type": "INTEGER", "minimum": 0 },
+          "currency": { "type": "STRING" },
+          "prefer_low_cost_substitutes": { "type": "BOOLEAN" },
+          "maximum_items": { "type": "INTEGER", "minimum": 1, "maximum": 100 }
+        },
+        "required": ["user_deck_goal_id"]
+      }
+    },
+    {
+      "name": "run_bargain_grading_analysis",
+      "description": "Evaluate a low-cost card as a raw hold, raw sale, grading candidate, manual review, or pass using purchase price, condition confidence, grading service data, fees, grade probabilities, and liquidity.",
+      "parameters": {
+        "type": "OBJECT",
+        "properties": {
+          "bargain_bin_item_id": { "type": "STRING" },
+          "grading_provider_key": { "type": "STRING" },
+          "service_level_id": { "type": "STRING" },
+          "selling_fee_bps": { "type": "INTEGER", "minimum": 0, "maximum": 10000 },
+          "shipping_cents": { "type": "INTEGER", "minimum": 0 },
+          "insurance_cents": { "type": "INTEGER", "minimum": 0 }
+        },
+        "required": ["bargain_bin_item_id"]
+      }
+    },
+    {
+      "name": "create_savings_goal",
+      "description": "Create a private manual savings goal for an event, ticket, travel, release, grading submission, collection goal, or deck goal. Does not move money.",
+      "parameters": {
+        "type": "OBJECT",
+        "properties": {
+          "goal_type": { "type": "STRING" },
+          "title": { "type": "STRING" },
+          "target_cents": { "type": "INTEGER", "minimum": 1 },
+          "current_cents": { "type": "INTEGER", "minimum": 0 },
+          "currency": { "type": "STRING" },
+          "target_date": { "type": "STRING", "description": "ISO date" },
+          "cadence": { "type": "STRING", "enum": ["weekly", "biweekly", "monthly", "manual"] },
+          "event_plan_id": { "type": "STRING" }
+        },
+        "required": ["goal_type", "title", "target_cents"]
+      }
+    },
+    {
+      "name": "prepare_quickbooks_invoice",
+      "description": "Prepare an authorized, idempotent QuickBooks invoice request for a confirmed ACool order. The server must verify organization, amount, currency, accounting mapping, and connection before execution.",
+      "parameters": {
+        "type": "OBJECT",
+        "properties": {
+          "organization_id": { "type": "STRING" },
+          "order_id": { "type": "STRING" },
+          "idempotency_key": { "type": "STRING" },
+          "customer_reference": { "type": "STRING" },
+          "memo": { "type": "STRING" }
+        },
+        "required": ["organization_id", "order_id", "idempotency_key"]
+      }
+    },
+    {
+      "name": "resolve_affiliate_link",
+      "description": "Resolve an approved active affiliate link and return destination plus required disclosure. Does not approve programs or fabricate an affiliation.",
+      "parameters": {
+        "type": "OBJECT",
+        "properties": {
+          "slug": { "type": "STRING" },
+          "consent_status": { "type": "STRING", "enum": ["unknown", "not_required", "granted", "denied"] },
+          "landing_path": { "type": "STRING" }
+        },
+        "required": ["slug"]
+      }
+    },
+    {
+      "name": "build_public_metadata",
+      "description": "Build schema.org JSON-LD, canonical, Open Graph, and social metadata for an approved public page. Must withhold offers, ratings, and affiliations when evidence is insufficient.",
+      "parameters": {
+        "type": "OBJECT",
+        "properties": {
+          "kind": { "type": "STRING", "enum": ["site", "product", "event", "vendor"] },
+          "data": { "type": "OBJECT" },
+          "breadcrumbs": { "type": "ARRAY", "items": { "type": "OBJECT" } }
+        },
+        "required": ["kind", "data"]
+      }
+    },
+    {
+      "name": "request_human_approval",
+      "description": "Create a human approval request for publication, price override, payout, refund, custody movement, promotion drawing, affiliation claim, accounting adjustment, or production release.",
+      "parameters": {
+        "type": "OBJECT",
+        "properties": {
+          "action_type": { "type": "STRING" },
+          "subject_type": { "type": "STRING" },
+          "subject_id": { "type": "STRING" },
+          "reason": { "type": "STRING" },
+          "evidence_references": { "type": "ARRAY", "items": { "type": "STRING" } },
+          "required_role": { "type": "STRING" }
+        },
+        "required": ["action_type", "subject_type", "subject_id", "reason", "required_role"]
+      }
+    }
+  ]
+}
