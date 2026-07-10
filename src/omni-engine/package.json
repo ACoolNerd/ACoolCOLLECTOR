@@ -1,6 +1,6 @@
 {
   "name": "omni-engine",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "ACoolOMNI Core Engine for ACoolCOLLECTOR",
   "main": "src/index.ts",
   "type": "module",
@@ -8,7 +8,7 @@
     "start": "node --loader ts-node/esm src/index.ts",
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'node --loader ts-node/esm' src/index.ts",
     "build": "tsc --noEmit",
-    "test": "npm run build && node --loader ts-node/esm --test src/services/ACoolVendorReputation.test.ts"
+    "test": "npm run build && node --loader ts-node/esm --test src/services/*.test.ts"
   },
   "keywords": [
     "ACoolOMNI",
@@ -17,7 +17,11 @@
     "iam",
     "pricing",
     "card-shows",
-    "vendor-intelligence"
+    "vendor-intelligence",
+    "events",
+    "recommendations",
+    "promotions",
+    "experiments"
   ],
   "author": "ACoolNERD",
   "license": "MIT",
