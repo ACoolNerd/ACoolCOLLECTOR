@@ -28,7 +28,11 @@ locals {
     "texttospeech.googleapis.com",
     "aiplatform.googleapis.com",
     "logging.googleapis.com",
-    "monitoring.googleapis.com"
+    "monitoring.googleapis.com",
+    "billingbudgets.googleapis.com",
+    "cloudresourcemanager.googleapis.com",
+    "iamcredentials.googleapis.com",
+    "sts.googleapis.com"
   ])
 }
 
