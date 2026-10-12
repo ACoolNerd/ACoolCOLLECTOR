@@ -78,6 +78,80 @@ def scrape_market_task(item_id: str, search_query: str):
     finally:
         db.close()
 
+@app.get("/api/v1/items")
+async def list_items(
+    search: str = "",
+    page: int = 1,
+    limit: int = 50,
+    status: str = "",
+    item_type: str = ""
+):
+    """List inventory items with pagination, search, and filtering."""
+    db = SessionLocal()
+    try:
+        query = db.execute(item_table.select()).mappings().all()
+        items = [dict(r) for r in query]
+
+        if search:
+            s = search.lower()
+            items = [i for i in items if s in (i.get("name") or "").lower()
+                     or s in (i.get("id") or "").lower()]
+        if status:
+            items = [i for i in items if (i.get("attributes") or {}).get("status", "").lower() == status.lower()]
+        if item_type:
+            items = [i for i in items if (i.get("categoryId") or "").lower() == item_type.lower()]
+
+        total = len(items)
+        start = (page - 1) * limit
+        page_items = items[start:start + limit]
+
+        return {
+            "status": "success",
+            "total": total,
+            "page": page,
+            "limit": limit,
+            "pages": (total + limit - 1) // limit,
+            "items": page_items
+        }
+    finally:
+        db.close()
+
+@app.get("/api/v1/items/stats")
+async def item_stats():
+    """Summary statistics for the inventory."""
+    db = SessionLocal()
+    try:
+        rows = db.execute(item_table.select()).mappings().all()
+        items = [dict(r) for r in rows]
+        by_type: dict = {}
+        by_status: dict = {}
+        for item in items:
+            ct = item.get("categoryId") or "Unknown"
+            st = (item.get("attributes") or {}).get("status", "Unknown")
+            by_type[ct] = by_type.get(ct, 0) + 1
+            by_status[st] = by_status.get(st, 0) + 1
+        return {
+            "status": "success",
+            "total_items": len(items),
+            "by_type": by_type,
+            "by_status": by_status
+        }
+    finally:
+        db.close()
+
+@app.get("/api/v1/items/{item_id}")
+async def get_item(item_id: str):
+    """Get a single item by ID."""
+    db = SessionLocal()
+    try:
+        from sqlalchemy import select
+        row = db.execute(select(item_table).where(item_table.c.id == item_id)).mappings().first()
+        if not row:
+            raise HTTPException(status_code=404, detail=f"Item {item_id} not found")
+        return {"status": "success", "item": dict(row)}
+    finally:
+        db.close()
+
 @app.post("/api/v1/scrape")
 async def trigger_scrape(request: ScrapeRequest, background_tasks: BackgroundTasks):
     """Endpoint to trigger market scraping for an item."""
