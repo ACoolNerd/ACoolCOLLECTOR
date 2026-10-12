@@ -42,3 +42,6 @@ ENV/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Landing page deps (should not be tracked)
+src/landing_page/node_modules/
