@@ -1,0 +1,31 @@
+{
+  "name": "ACoolCOLLECTOR Omni",
+  "version": 1,
+  "projectRoot": "/Users/acoolnerd/ACool/repos/ACoolCOLLECTOR",
+  "stagingRoot": "/Users/acoolnerd/Downloads/ACoolCOLLECTOR",
+  "syncStatus": "reconciled-2026-10-12",
+  "composeFile": "docker-compose.yml",
+  "services": {
+    "db": {"container": "acool_db", "endpoint": "localhost:5432", "role": "postgresql", "persistent": true},
+    "redis": {"container": "acool_redis", "endpoint": "localhost:6379", "role": "cache", "persistent": false},
+    "ai-engine": {"container": "acool_ai_engine", "endpoint": "http://localhost:8000/docs", "role": "fastapi"},
+    "web": {"container": "acool_web", "endpoint": "http://localhost:3000", "role": "nextjs"},
+    "adminer": {"container": "acool_adminer", "endpoint": "http://localhost:8080", "role": "database-ui"},
+    "portainer": {"container": "acool_portainer", "endpoint": "http://localhost:9000", "role": "docker-ui", "setupRequired": false, "envId": 3, "apiKeyKeychain": "PORTAINER_API_KEY"},
+    "portainer-agent": {"container": "acool_portainer_agent", "endpoint": "localhost:9001", "role": "docker-agent"}
+  },
+  "mcpClients": {
+    "claude-code": ["MCP_DOCKER", "filesystem-kind", "filesystem-luxury", "github"],
+    "claude-desktop": {"managedBy": "acool-mcp", "doctor": "required"},
+    "gemini-cli": {"managedBy": "acool-mcp", "doctor": "required"},
+    "antigravity": {"managedBy": "acool-mcp", "doctor": "required"}
+  },
+  "syncRules": {
+    "credentials": "keychain-or-client-auth-only",
+    "databaseUri": "keychain-only",
+    "plaintextSecrets": false,
+    "composeEnvFile": ".env",
+    "backupEnvFiles": false
+  },
+  "verification": ["docker compose config --quiet", "docker compose ps", "acool-mcp doctor", "HTTP probes"]
+}

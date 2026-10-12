@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. The Platform Users
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  role         Role          @default(COLLECTOR)
+  // Gamification & Profiling
+  xp           Int           @default(0)
+  level        Int           @default(1)
+  archetypes   String[]      // e.g., ["META_PLAYER", "VAULT_INVESTOR"]
+  preferences  Json?         // e.g., { "verticals": ["One Piece", "Basketball"], "alerts": "snipes" }
+  
+  portfolios   Portfolio[]
+  listings     MarketplaceListing[] // Items they are selling via ACool Escrow
+  createdAt    DateTime      @default(now())
+}
+
+enum Role {
+  ADMIN
+  COLLECTOR
+  INVESTOR
+  PLAYER
+  VENDOR
+}
+
+// 2. The Verticals (e.g., "One Piece TCG", "Sneakers")
+model Category {
+  id           String        @id @default(cuid())
+  slug         String        @unique
+  name         String
+  items        Item[]
+  events       CalendarEvent[]
+}
+
+// 3. The Universal Item Model
+model Item {
+  id           String        @id @default(cuid())
+  categoryId   String
+  category     Category      @relation(fields: [categoryId], references: [id])
+  name         String
+  attributes   Json          // Universal flexibility (e.g., { player: "LeBron", parallel: "Refractor" })
+  marketData   MarketData[]
+  portfolio    PortfolioItem[]
+  listings     MarketplaceListing[]
+}
+
+// 4. Time-Series Pricing Data
+model MarketData {
+  id           String        @id @default(cuid())
+  itemId       String
+  item         Item          @relation(fields: [itemId], references: [id])
+  grade        String?
+  price        Float
+  source       String
+  recordedAt   DateTime      @default(now())
+
+  @@index([itemId, grade, recordedAt])
+}
+
+// 5. Portfolio Management
+model Portfolio {
+  id           String          @id @default(cuid())
+  userId       String
+  user         User            @relation(fields: [userId], references: [id])
+  name         String
+  items        PortfolioItem[]
+}
+
+model PortfolioItem {
+  id            String        @id @default(cuid())
+  portfolioId   String
+  portfolio     Portfolio     @relation(fields: [portfolioId], references: [id])
+  itemId        String
+  item          Item          @relation(fields: [itemId], references: [id])
+  purchasePrice Float
+  acquiredAt    DateTime
+  grade         String?
+}
+
+// 6. The ACool Secure Escrow Marketplace
+model MarketplaceListing {
+  id           String        @id @default(cuid())
+  sellerId     String
+  seller       User          @relation(fields: [sellerId], references: [id])
+  itemId       String
+  item         Item          @relation(fields: [itemId], references: [id])
+  price        Float
+  grade        String?
+  images       String[]
+  status       ListingStatus @default(ACTIVE)
+  isEscrow     Boolean       @default(true) // ACool acts as the secure middleman
+  listedAt     DateTime      @default(now())
+}
+
+enum ListingStatus {
+  ACTIVE
+  PENDING_ESCROW
+  VERIFYING_AUTHENTICITY
+  SOLD
+  CANCELLED
+}
+
+// 7. Player vs Collector Informatics (The Calendar)
+model CalendarEvent {
+  id           String        @id @default(cuid())
+  categoryId   String
+  category     Category      @relation(fields: [categoryId], references: [id])
+  title        String        // "OP-08 Pre-Release" or "NBA Draft"
+  eventType    EventType
+  date         DateTime
+}
+
+enum EventType {
+  TOURNAMENT
+  PRODUCT_DROP
+  META_BANLIST
+}
