@@ -14,7 +14,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -30,7 +30,7 @@ services:
     container_name: acool_redis
     restart: always
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     networks:
       - acool-network
     healthcheck:
@@ -51,7 +51,7 @@ services:
     container_name: acool_ai_engine
     restart: always
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       REDIS_URL: redis://redis:6379/0
@@ -78,7 +78,7 @@ services:
     container_name: acool_web
     restart: always
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       NEXT_PUBLIC_API_URL: http://localhost:8000
@@ -107,7 +107,7 @@ services:
     container_name: acool_portainer
     restart: always
     ports:
-      - "9000:9000"
+      - "127.0.0.1:9000:9000"
     volumes:
       - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
       - portainer_data:/data
@@ -119,7 +119,7 @@ services:
     container_name: acool_adminer
     restart: always
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     environment:
       ADMINER_DEFAULT_SERVER: db
       ADMINER_DESIGN: pepa-linha-dark
@@ -134,7 +134,7 @@ services:
     container_name: acool_portainer_agent
     restart: always
     ports:
-      - "9001:9001"
+      - "127.0.0.1:9001:9001"
     volumes:
       - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
       - /var/lib/docker/volumes:/var/lib/docker/volumes
