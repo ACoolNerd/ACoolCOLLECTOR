@@ -184,6 +184,8 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [liveCards, setLiveCards] = useState<any[]>([]);
+  const [inventoryStatus, setInventoryStatus] = useState<'loading' | 'database' | 'fallback_json'>('loading');
   
   // Dynamic Portfolio State
   const [portfolio, setPortfolio] = useState<any[]>([]);
@@ -197,6 +199,14 @@ export default function Dashboard() {
   const [checklist, setChecklist] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    fetch('/api/market-data?limit=500')
+      .then((response) => response.json())
+      .then((payload) => {
+        setLiveCards(Array.isArray(payload.cards) ? payload.cards : []);
+        setInventoryStatus(payload.source === 'database' ? 'database' : 'fallback_json');
+      })
+      .catch(() => setInventoryStatus('fallback_json'));
+
     // Load portfolio from localStorage
     const savedPortfolio = localStorage.getItem('acool_portfolio');
     if (savedPortfolio) {
@@ -312,7 +322,8 @@ export default function Dashboard() {
   const confidenceScore = totalChecklistItems > 0 ? 7.0 + (completedChecklistItems / totalChecklistItems) * 2.9 : 7.0;
 
   // Filter cards
-  const filteredCards = SERIAL_CARDS.filter(card => 
+  const inventoryCards = liveCards.length > 0 ? liveCards : SERIAL_CARDS;
+  const filteredCards = inventoryCards.filter(card =>
     card.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     card.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
     card.set.toLowerCase().includes(searchTerm.toLowerCase())
@@ -325,6 +336,9 @@ export default function Dashboard() {
         <div className="header-title-group">
           <h1>ACool COLLECTOR</h1>
           <p>One Piece English Serial & Sealed Box Investment Ecosystem</p>
+          <p style={{ color: 'hsl(var(--text-muted))', fontSize: '0.75rem' }}>
+            Inventory: {inventoryStatus === 'loading' ? 'CONNECTING' : inventoryStatus === 'database' ? 'LIVE DATABASE' : 'FALLBACK DATA'}
+          </p>
         </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <div className="header-badge">
@@ -359,6 +373,9 @@ export default function Dashboard() {
         <button className={`tab-btn ${activeTab === 'checklist' ? 'active' : ''}`} onClick={() => setActiveTab('checklist')}>
           📋 30-Day Startup Plan
         </button>
+        <a href="/inventory" className="tab-btn" style={{ textDecoration: 'none' }}>
+          🗂️ Live Inventory
+        </a>
       </nav>
 
       {/* SEARCH BAR FOR GLOBAL UTILITY */}

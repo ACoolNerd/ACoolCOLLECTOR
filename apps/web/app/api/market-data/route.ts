@@ -62,23 +62,67 @@ const SEALED_BOXES = [
   { set: 'OP-02', name: 'Paramount War Box', tier: 'Core', buyTarget: 300, currentPrice: 350, roi12m: 25, status: 'Low Risk' }
 ];
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const search = searchParams.get('search')?.trim() || '';
+  const limit = Math.min(Number(searchParams.get('limit') || 100), 500);
+
   if (prisma) {
     try {
-      // Attempt to fetch items from the database
       const items = await prisma.item.findMany({
-        include: { marketData: true }
+        where: search
+          ? {
+              OR: [
+                { id: { contains: search, mode: 'insensitive' } },
+                { name: { contains: search, mode: 'insensitive' } }
+              ]
+            }
+          : undefined,
+        include: {
+          marketData: { orderBy: { recordedAt: 'desc' }, take: 1 }
+        },
+        orderBy: { name: 'asc' },
+        take: limit
       });
-      if (items.length > 0) {
-        return NextResponse.json({ source: 'database', cards: items, boxes: SEALED_BOXES });
-      }
-    } catch (e) {
-      console.error("Database connection failed, falling back to static JSON", e.message);
+
+      return NextResponse.json({
+        source: 'database',
+        total: items.length,
+        cards: items.map((item) => {
+          const latest = item.marketData[0];
+          const attributes = (item.attributes ?? {}) as Record<string, unknown>;
+          const numericPrice = latest?.price ?? Number(attributes.price ?? 0);
+          return {
+            id: item.id,
+            name: item.name,
+            set: String(attributes.set ?? attributes.collection ?? 'ACool Inventory'),
+            rarity: String(attributes.type ?? attributes.entity ?? 'CollectorAsset'),
+            score: Number(attributes.score ?? 0),
+            raw: numericPrice,
+            psa9: Number(attributes.psa9 ?? 0),
+            psa10: Number(attributes.psa10 ?? 0),
+            bgs10: Number(attributes.bgs10 ?? 0),
+            blackLabel: Number(attributes.blackLabel ?? 0),
+            activeAsk: numericPrice,
+            seller: latest?.source ?? 'ACool Inventory',
+            link: String(attributes.link ?? '#'),
+            buyTarget: numericPrice,
+            status: String(attributes.status ?? 'CONFIRMED'),
+            grade: latest?.grade ?? null,
+            recordedAt: latest?.recordedAt ?? null,
+            attributes
+          };
+        }),
+        boxes: SEALED_BOXES
+      });
+    } catch (error) {
+      console.error('Database connection failed, falling back to static JSON', error);
     }
   }
 
   return NextResponse.json({
     source: 'fallback_json',
+    total: SERIAL_CARDS.length,
     cards: SERIAL_CARDS,
     boxes: SEALED_BOXES
   });
