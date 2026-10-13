@@ -373,6 +373,9 @@ export default function Dashboard() {
         <button className={`tab-btn ${activeTab === 'checklist' ? 'active' : ''}`} onClick={() => setActiveTab('checklist')}>
           📋 30-Day Startup Plan
         </button>
+        <a href="/inventory" className="tab-btn" style={{ textDecoration: 'none' }}>
+          🗂️ Live Inventory
+        </a>
       </nav>
 
       {/* SEARCH BAR FOR GLOBAL UTILITY */}
