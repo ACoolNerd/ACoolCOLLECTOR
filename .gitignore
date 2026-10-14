@@ -46,3 +46,4 @@ Thumbs.db
 # Landing page deps (should not be tracked)
 src/landing_page/node_modules/
 src/omni-engine/node_modules/
+*.tsbuildinfo

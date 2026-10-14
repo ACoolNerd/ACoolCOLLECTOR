@@ -153,10 +153,15 @@ async def get_item(item_id: str):
         db.close()
 
 @app.post("/api/v1/scrape")
-async def trigger_scrape(request: ScrapeRequest, background_tasks: BackgroundTasks):
-    """Endpoint to trigger market scraping for an item."""
-    background_tasks.add_task(scrape_market_task, request.item_id, request.search_query)
-    return {"status": "success", "message": f"Market scraping manifested for: {request.search_query}"}
+async def trigger_scrape(request: ScrapeRequest):
+    """
+    Endpoint quarantined (C4 / Ruth Review Standard).
+    Simulated random price generator disabled to preserve PostgreSQL data integrity.
+    """
+    raise HTTPException(
+        status_code=503,
+        detail="Scrape endpoint quarantined pending production sovereign adapter integration."
+    )
 
 @app.get("/api/v1/anomaly")
 async def get_anomalies():
