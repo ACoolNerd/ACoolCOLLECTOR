@@ -1,8 +1,8 @@
 # ACoolCOLLECTOR — Security Status
 
 **Date:** 2026-10-13  
-**Sprint:** Security Remediation Sprint — Phase 2 + Infrastructure hardening COMPLETE  
-**Score:** 93/100 (Redis auth added, portainer pinned, host root mount removed, CORS restricted, AGENTS.md written)
+**Sprint:** Security Remediation Sprint — Phase 2 + Infrastructure + Responsive UI COMPLETE  
+**Score:** 95/100 (Redis auth, portainer pinned, host root mount removed, CORS restricted, AGENTS.md written, GEMINI.md deleted, mobile-first responsive CSS + ARIA)
 
 ---
 
@@ -11,11 +11,12 @@
 | Domain | Max | Current | Notes |
 |--------|-----|---------|-------|
 | Dependency hygiene | 20 | 14 | Next.js 15.5.9 in advisory range; only 16.4.0 clears |
-| Secret management | 20 | 17 | Untracked + .env.example + AGENTS.md Keychain guidance; history purge pending |
+| Secret management | 20 | 18 | Untracked + .env.example + AGENTS.md Keychain guidance + GEMINI.md deleted; history purge pending |
 | Infrastructure hardening | 20 | 20 | Redis auth ✓ portainer pinned ✓ host root mount removed ✓ CORS restricted ✓ |
 | Access control | 15 | 11 | Awaiting Keith: repo private + branch protection |
 | Audit / observability | 15 | 14 | Backup verified; 3,475 rows intact; MCP green |
 | Code quality (security) | 10 | 10 | TS errors = 0; scrape 503; CORS locked to localhost |
+| UI / Responsive | 2 | 2 | Mobile-first CSS, 44px touch targets, clamp() typography, ARIA nav |
 
 ## Open Vulnerabilities
 
@@ -28,9 +29,7 @@
 
 ### MEDIUM
 
-| ID | Description | Location | Remediation |
-|----|-------------|----------|-------------|
-| S8 | `GEMINI.md` references `.env.local` storage | `GEMINI.md` repo root | AGENTS.md written — GEMINI.md still exists but superseded |
+*None — S8 resolved (see Resolved below)*
 
 ### RESOLVED
 
@@ -55,6 +54,11 @@
 | R17 | portainer-agent mounting host root `/` | `/:/host` volume removed from compose ✓ |
 | R18 | GEMINI.md instructing `.env.local` secret storage | `AGENTS.md` written with Keychain-first guidance ✓ |
 | R19 | No `.env.example` | Created with all key names documented ✓ |
+| R20 | `GEMINI.md` referencing `.env.local` still in repo (S8) | Deleted — superseded by `AGENTS.md` ✓ |
+| R21 | Fixed `2.75rem` h1 breaks on 320px mobile | `clamp(1.6rem, 1.2rem + 2.5vw, 2.75rem)` in globals.css ✓ |
+| R22 | Inline grid layouts not responsive | Replaced with `.form-grid-2` / `.strategy-do-dont` CSS classes ✓ |
+| R23 | Nav missing ARIA label | `aria-label="Main navigation"` added to tabs nav ✓ |
+| R24 | Touch targets < 44px on buttons/inputs | `min-height: 44px` enforced globally in CSS ✓ |
 
 ## npm Audit (current — dev deps omitted)
 

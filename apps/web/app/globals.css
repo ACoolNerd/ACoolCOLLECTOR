@@ -97,12 +97,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .header-title-group h1 {
-  font-size: 2.75rem;
+  font-size: clamp(1.6rem, 1.2rem + 2.5vw, 2.75rem);
   background: linear-gradient(135deg, #fff 30%, hsl(var(--gold-primary)));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  letter-spacing: 0.1em;
+  letter-spacing: clamp(0.03em, 0.05em + 0.2vw, 0.1em);
   text-transform: uppercase;
 }
 
@@ -193,7 +193,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .kpi-value {
-  font-size: 2rem;
+  font-size: clamp(1.5rem, 1.2rem + 1.5vw, 2rem);
   font-weight: 800;
   font-family: var(--font-display);
   letter-spacing: -0.02em;
@@ -624,5 +624,123 @@ select.glass-input option {
   }
   50% {
     box-shadow: 0 0 20px rgba(212, 168, 75, 0.35), inset 0 0 15px rgba(212, 168, 75, 0.15);
+  }
+}
+
+/* ============================================================
+   RESPONSIVE SYSTEM
+   Mobile-first breakpoints and touch target guarantees
+   ============================================================ */
+
+/* 44px minimum touch targets (WCAG 2.5.5) */
+.btn {
+  min-height: 44px;
+}
+
+.tab-btn {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.glass-input {
+  min-height: 44px;
+}
+
+/* Responsive 2-column form grid — collapses to 1 column on small screens */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 480px) {
+  .form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Strategy section do/don't two-column grid */
+.strategy-do-dont {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  .strategy-do-dont {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+/* Mobile layout adjustments */
+@media (max-width: 768px) {
+  .dashboard-wrapper {
+    padding: 1.25rem 1rem;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .section-title-group h2 {
+    font-size: clamp(1.25rem, 1rem + 2vw, 1.75rem);
+  }
+
+  .glass-card {
+    padding: 1.25rem;
+  }
+
+  .grid-kpis {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-wrapper {
+    padding: 1rem 0.75rem;
+  }
+
+  .dashboard-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+  }
+
+  .header-title-group h1 {
+    letter-spacing: 0.04em;
+  }
+
+  .header-title-group p {
+    font-size: 0.9rem;
+  }
+
+  .tabs-header {
+    gap: 0.25rem;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .tab-btn {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .grid-three-col {
+    grid-template-columns: 1fr;
+  }
+
+  .card-grid-custom {
+    grid-template-columns: 1fr;
+  }
+
+  td, th {
+    padding: 0.75rem 0.85rem;
+    font-size: 0.8rem;
   }
 }

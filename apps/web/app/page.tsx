@@ -351,7 +351,7 @@ export default function Dashboard() {
       </header>
 
       {/* Tabs Menu */}
-      <nav className="tabs-header">
+      <nav className="tabs-header" aria-label="Main navigation">
         <button className={`tab-btn ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>
           📊 Overview & Tracker
         </button>
@@ -579,7 +579,7 @@ export default function Dashboard() {
                   </select>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-grid-2">
                   <div className="form-group">
                     <label className="form-label">Your Cost ($)</label>
                     <input 
@@ -790,7 +790,7 @@ export default function Dashboard() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="form-grid-2">
                 <div className="form-group">
                   <label htmlFor="grading-service-select" className="form-label">Grading Service</label>
                   <select 
@@ -1081,7 +1081,7 @@ Thanks!`}
               <p>Maintain these operational guardrails to prevent data/capital loss</p>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '1.25rem' }}>
+            <div className="strategy-do-dont">
               <div>
                 <h4 style={{ color: 'hsl(var(--green-neon))', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
                   <ShieldCheck size={18} /> DO:
