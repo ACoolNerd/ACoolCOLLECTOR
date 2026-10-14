@@ -35,12 +35,17 @@ market_data_table = Table(
 app = FastAPI(title="ACoolCOLLECTOR AI Engine", version="1.0", description="9.8/10 Market Manifestation API")
 
 from fastapi.middleware.cors import CORSMiddleware
+_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=_ALLOWED_ORIGINS,
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "Accept"],
 )
 
 class ScrapeRequest(BaseModel):
@@ -153,10 +158,15 @@ async def get_item(item_id: str):
         db.close()
 
 @app.post("/api/v1/scrape")
-async def trigger_scrape(request: ScrapeRequest, background_tasks: BackgroundTasks):
-    """Endpoint to trigger market scraping for an item."""
-    background_tasks.add_task(scrape_market_task, request.item_id, request.search_query)
-    return {"status": "success", "message": f"Market scraping manifested for: {request.search_query}"}
+async def trigger_scrape(request: ScrapeRequest):
+    """
+    Endpoint quarantined (C4 / Ruth Review Standard).
+    Simulated random price generator disabled to preserve PostgreSQL data integrity.
+    """
+    raise HTTPException(
+        status_code=503,
+        detail="Scrape endpoint quarantined pending production sovereign adapter integration."
+    )
 
 @app.get("/api/v1/anomaly")
 async def get_anomalies():
