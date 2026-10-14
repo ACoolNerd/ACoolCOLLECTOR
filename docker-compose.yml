@@ -29,12 +29,13 @@ services:
     image: redis:7-alpine
     container_name: acool_redis
     restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     ports:
       - "127.0.0.1:6379:6379"
     networks:
       - acool-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -54,7 +55,7 @@ services:
       - "127.0.0.1:8000:8000"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-      REDIS_URL: redis://redis:6379/0
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
       PYTHONUNBUFFERED: 1
     depends_on:
       db:
@@ -103,7 +104,7 @@ services:
   # ============================================================
 
   portainer:
-    image: portainer/portainer-ce:latest
+    image: portainer/portainer-ce:2.27.2
     container_name: acool_portainer
     restart: always
     ports:
@@ -138,7 +139,6 @@ services:
     volumes:
       - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
       - /var/lib/docker/volumes:/var/lib/docker/volumes
-      - /:/host
     networks:
       - acool-network
 
