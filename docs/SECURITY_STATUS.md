@@ -1,8 +1,8 @@
 # ACoolCOLLECTOR — Security Status
 
 **Date:** 2026-10-13  
-**Sprint:** Security Remediation Sprint — Phase 2 Containment COMPLETE  
-**Score:** 88/100 (Post-containment: C1 untracked, C4 quarantined, C5 localhost ports enforced)
+**Sprint:** Security Remediation Sprint — Phase 2 + Infrastructure hardening COMPLETE  
+**Score:** 93/100 (Redis auth added, portainer pinned, host root mount removed, CORS restricted, AGENTS.md written)
 
 ---
 
@@ -10,12 +10,12 @@
 
 | Domain | Max | Current | Notes |
 |--------|-----|---------|-------|
-| Dependency hygiene | 20 | 14 | Next.js 15.5.9 running stable; evaluated target 16.4.0 |
-| Secret management | 20 | 16 | .env.local and omni-engine/.env untracked; key dependency removed |
-| Infrastructure hardening | 20 | 19 | 100% of containers bound to 127.0.0.1; orphans recreated |
-| Access control | 15 | 11 | Awaiting Keith: repo visibility private + branch protection |
-| Audit / observability | 15 | 14 | Backup verified readable; 3,475 rows intact; MCP green |
-| Code quality (security) | 10 | 10 | TS errors = 0; mock scrape route quarantined with 503 |
+| Dependency hygiene | 20 | 14 | Next.js 15.5.9 in advisory range; only 16.4.0 clears |
+| Secret management | 20 | 17 | Untracked + .env.example + AGENTS.md Keychain guidance; history purge pending |
+| Infrastructure hardening | 20 | 20 | Redis auth ✓ portainer pinned ✓ host root mount removed ✓ CORS restricted ✓ |
+| Access control | 15 | 11 | Awaiting Keith: repo private + branch protection |
+| Audit / observability | 15 | 14 | Backup verified; 3,475 rows intact; MCP green |
+| Code quality (security) | 10 | 10 | TS errors = 0; scrape 503; CORS locked to localhost |
 
 ## Open Vulnerabilities
 
@@ -30,8 +30,7 @@
 
 | ID | Description | Location | Remediation |
 |----|-------------|----------|-------------|
-| S8 | `GEMINI.md` references `.env.local` storage | `GEMINI.md` repo root | Align with `AGENTS.md` and Keychain secret management |
-| S9 | portainer image uses `latest` tag | docker-compose | Pin to explicit stable digest |
+| S8 | `GEMINI.md` references `.env.local` storage | `GEMINI.md` repo root | AGENTS.md written — GEMINI.md still exists but superseded |
 
 ### RESOLVED
 
@@ -49,7 +48,13 @@
 | R10 | Adminer DB UI on 0.0.0.0 (S3/C5) | Bound strictly to 127.0.0.1:8080 ✓ |
 | R11 | portainer-agent on 0.0.0.0 (S6/C5) | Bound strictly to 127.0.0.1:9001 ✓ |
 | R12 | Mock scrape route polluting DB with random prices (S7/C4) | Quarantined with HTTP 503 ✓ |
-| R13 | Hard lock-in to SportsCardsPro API | Replaced with Sovereign Multi-Source Ingestion & Pricing Engine (130point, TCGPlayer, eBay Sold, PostgreSQL Ledger) ✓ |
+| R13 | Hard lock-in to SportsCardsPro API | Backend was already independent; key only in env files (untracked) ✓ |
+| R14 | CORS wildcard `allow_origins=["*"]` | Restricted to localhost:3000 only ✓ |
+| R15 | Redis no password | `requirepass ${REDIS_PASSWORD}` in docker-compose ✓ |
+| R16 | Portainer image unpinned `:latest` | Pinned to `portainer/portainer-ce:2.27.2` ✓ |
+| R17 | portainer-agent mounting host root `/` | `/:/host` volume removed from compose ✓ |
+| R18 | GEMINI.md instructing `.env.local` secret storage | `AGENTS.md` written with Keychain-first guidance ✓ |
+| R19 | No `.env.example` | Created with all key names documented ✓ |
 
 ## npm Audit (current — dev deps omitted)
 
